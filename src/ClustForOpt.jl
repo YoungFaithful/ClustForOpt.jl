@@ -7,17 +7,12 @@
  #####################
  #TODO other way of including module
 module ClustForOpt
-  using StatsKit
   using Reexport
-  using JLD2
-  using FileIO
-  #TODO Update TimeWarp
-  #using TimeWarp
-  using GenericLinearAlgebra
-  using CSV
+  @reexport using StatsKit
+  @reexport using JLD2
+  @reexport using FileIO
   using JuMP
   using Clp
-  @reexport using DataFrames
 
    #TODO how to make PyPlot, PyCall, and TimeWarp optional? -> only import when needed
 
