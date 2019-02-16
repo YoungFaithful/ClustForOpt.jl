@@ -1,7 +1,6 @@
 # This file exemplifies the workflow from data input to optimization result generation
-
-include(normpath(joinpath(dirname(@__FILE__),"..","src","ClustForOpt_priv_development.jl")))
-
+using ClustForOpt
+using Gurobi
 ## LOAD DATA ##
 state="GER_1" # or "GER_18" or "CA_1" or "TX_1"
 years=[2016] #2016 works for GER_1 and CA_1, GER_1 can also be used with 2006 to 2016 and, GER_18 is 2015 TX_1 is 2008
@@ -12,10 +11,7 @@ cep_data = load_cep_data(state)
 
 ## CLUSTERING ##
 # run aggregation with kmeans
-ts_clust_data = run_clust(ts_input_data;method="kmeans",representation="centroid",n_init=100,n_clust=5) # default k-means make sure that n_init is high enough otherwise the results could be crap and drive you crazy
-
-# run aggregation with kmeans and have periods segmented
-ts_seg_data = run_clust(ts_input_data;method="kmeans",representation="centroid",n_init=1000,n_clust=5, n_seg=4) # default k-means make sure that n_init is high enough otherwise the results could be crap and drive you crazy
+ts_clust_data = run_clust(ts_input_data;method="kmeans",representation="centroid",n_init=5,n_clust=5) # default k-means make sure that n_init is high enough otherwise the results could be crap and drive you crazy
 
 # run no aggregation just get ts_full_data
 ts_full_data = run_clust(ts_input_data;method="kmeans",representation="centroid",n_init=1,n_clust=365) # default k-means
@@ -49,10 +45,6 @@ seg_result = run_opt(ts_seg_data.best_results,cep_data;solver=solver,descriptor=
 
 # Desing with clusered data and operation with ts_full_data
 # First solve the clustered case
-design_result = run_opt(ts_clust_data.best_results,cep_data;solver=solver,descriptor="design&operation", co2_limit=50)
-
-#capacity_factors
-design_variables=get_cep_design_variables(design_result, capacity_factors=Dict{String,Number}("pv"=>1.2, "wind"=>1.0))
-
+design_result = run_opt(ts_clust_data.best_results,cep_data;solver=solver,descriptor="design&operation")
 # Use the design variable results for the operational run
-operation_result = run_opt(ts_full_data.best_results,cep_data,design_result.opt_config,design_variables;solver=solver,lost_el_load_cost=1e6,lost_CO2_emission_cost=700)
+operation_result = run_opt(ts_full_data.best_results,cep_data,design_result.opt_config,get_cep_design_variables(design_result);solver=solver,lost_el_load_cost=1e6,lost_CO2_emission_cost=700)
