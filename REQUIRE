@@ -1,13 +1,9 @@
 julia 1.0-
-Gurobi
-CSV
-LinearAlgebra
-Statistics
+StatsKit
+GenericLinearAlgebra
 Reexport
-Distances
-DataFrames
-Clustering
 JLD2
 FileIO
 JuMP
 Clp
+Gurobi

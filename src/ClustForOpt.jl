@@ -7,16 +7,13 @@
  #####################
  #TODO other way of including module
 module ClustForOpt
-
+  using StatsKit
   using Reexport
-  using Distances
-  using Clustering
   using JLD2
   using FileIO
   #TODO Update TimeWarp
   #using TimeWarp
-  using Statistics
-  using LinearAlgebra
+  using GenericLinearAlgebra
   using CSV
   using JuMP
   using Clp
