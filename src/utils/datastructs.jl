@@ -70,18 +70,29 @@ struct SimpleExtremeValueDescr
    data_type::String
    extremum::String
    peak_def::String
+   periods::Int64
    "Replace default constructor to only allow certain entries"
    function SimpleExtremeValueDescr(data_type::String,
                                     extremum::String,
-                                    peak_def::String)
+                                    peak_def::String,
+                                    periods::Int64)
        # only allow certain entries
        if !(extremum in ["min","max"])
          @error("extremum - "*extremum*" - not defined")
        elseif !(peak_def in ["absolute","integral"])
          @error("peak_def - "*peak_def*" - not defined")
        end
-       new(data_type,extremum,peak_def)
+       new(data_type,extremum,peak_def,periods)
    end
+end
+
+"""
+    SimpleExtremeValueDescr(data_type::String, extremum::String, peak_def::String)
+"""
+function SimpleExtremeValueDescr(data_type::String,
+                                 extremum::String,
+                                 peak_def::String)
+   return SimpleExtremeValueDescr(data_type, extremum, peak_def, 1)
 end
 
 """
@@ -208,6 +219,7 @@ end
 constructor 1 for ClustData: provide data individually
 
 function ClustData(region::String,
+                         years::Array{Int64,1},
                          K::Int,
                          T::Int;
                          el_price::Array=[],
@@ -271,6 +283,7 @@ end
 constructor 2 for ClustData: provide data as dict
 
 function ClustData(region::String,
+                       years::Array{Int64,1},
                        K::Int,
                        T::Int,
                        data::Dict{String,Array};
@@ -333,6 +346,7 @@ end
 """
 constructor 1: construct ClustDataMerged
 function ClustDataMerged(region::String,
+                       years::Array{Int64,1},
                        K::Int,
                        T::Int,
                        data::Array,
