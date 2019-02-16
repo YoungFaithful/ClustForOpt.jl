@@ -1,5 +1,8 @@
+
 # ClustForOpt
 
+
+[![Travis](https://api.travis-ci.com/YoungFaithful/ClustForOpt.jl.svg?branch=development)](https://travis-ci.com/YoungFaithful/ClustForOpt.jl)
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
 
 ClustForOpt is a [julia](www.juliaopt.com) implementation of clustering methods for finding representative periods for the optimization of energy systems. The package furthermore provides a multi-node capacity expansion model.
@@ -91,6 +94,6 @@ For use of DTW barycenter averaging (DBA) and k-shape clustering on single-attri
 
 
 ### Optimization
-The function `run_opt()` runs the optimization problem and gives as an output a struct that contains optimal objective function value, decision variables, and additional info. The `run_opt()` function infers the optimization problem type from the input data. See the examples folder for further details. 
+The function `run_opt()` runs the optimization problem and gives as an output a struct that contains optimal objective function value, decision variables, and additional info. The `run_opt()` function infers the optimization problem type from the input data. See the examples folder for further details.
 
 More detailed documentation on the Capacity Expansion Problem can be found in the documentation.

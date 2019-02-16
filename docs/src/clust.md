@@ -28,7 +28,7 @@ run_clust
 using ClustForOpt
 state="GER_1"
 # laod ts-input-data
-ts_input_data, = load_timeseries_data("CEP", state; K=365, T=24)
+ts_input_data, = load_timeseries_data("CEP", state; T=24)
 ts_clust_data = run_clust(ts_input_data).best_results
 
 using Plots

@@ -20,7 +20,7 @@ load_timeseries_data
 using ClustForOpt
 state="GER_1"
 # laod ts-input-data
-ts_input_data, = load_timeseries_data("CEP", state; K=365, T=24)
+ts_input_data, = load_timeseries_data("CEP", state; T=24)
 
 using Plots
 plot(ts_input_data.data["solar-germany"], legend=false, linestyle=:dot, xlabel="Time [h]", ylabel="Solar availability factor [%]")
