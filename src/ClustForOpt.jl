@@ -17,7 +17,6 @@ module ClustForOpt
   using CSV
   using JuMP
   using Clp
-  using Gurobi
   @reexport using DataFrames
 
    #TODO how to make PyPlot, PyCall, and TimeWarp optional? -> only import when needed

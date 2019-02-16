@@ -287,12 +287,11 @@ run_opt
 #### Example with CO2-Limitation
 ```@example
 using ClustForOpt
-using Gurobi
 state="GER_1" #select state
 ts_input_data, = load_timeseries_data("CEP", state; K=365, T=24)
 cep_data = load_cep_data(state)
 ts_clust_data = run_clust(ts_input_data;method="kmeans",representation="centroid",n_init=5,n_clust=5).best_results
-solver=GurobiSolver(OutputFlag=0) # select solver
+solver=CbcSolver() # select solver
 # tweak the CO2 level
 co2_result = run_opt(ts_clust_data,cep_data;solver=solver,descriptor="co2",co2_limit=500)
 co2_result.status
@@ -300,12 +299,11 @@ co2_result.status
 ```@setup cep
 using Plots
 using ClustForOpt
-using Gurobi
 state="GER_1"
 ts_input_data, = load_timeseries_data("CEP", state; K=365, T=24)
 cep_data = load_cep_data(state)
 ts_clust_data = run_clust(ts_input_data;method="kmeans",representation="centroid",n_init=5,n_clust=5).best_results
-solver=GurobiSolver(OutputFlag=0)
+solver=CbcSolver()
 ```
 #### Example with slack variables included
 ```@example cep
