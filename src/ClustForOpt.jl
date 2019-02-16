@@ -1,11 +1,10 @@
-# Holger Teichgraeber, 2017
+# Holger Teichgraeber, Elias Kuepper, 2019
 
  ######################
  # ClustForOpt
  # Analyzing clustering techniques as input for energy systems optimization
  #
  #####################
- #TODO other way of including module
 module ClustForOpt
   using Reexport
   @reexport using StatsKit

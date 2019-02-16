@@ -285,7 +285,7 @@ run_opt
 
 ### Examples
 #### Example with CO2-Limitation
-```@example
+```julia
 using ClustForOpt
 state="GER_1" #select state
 ts_input_data, = load_timeseries_data("CEP", state; K=365, T=24)
@@ -296,33 +296,21 @@ solver=CbcSolver() # select solver
 co2_result = run_opt(ts_clust_data,cep_data;solver=solver,descriptor="co2",co2_limit=500)
 co2_result.status
 ```
-```@setup cep
-using Plots
-using ClustForOpt
-state="GER_1"
-ts_input_data, = load_timeseries_data("CEP", state; K=365, T=24)
-cep_data = load_cep_data(state)
-ts_clust_data = run_clust(ts_input_data;method="kmeans",representation="centroid",n_init=5,n_clust=5).best_results
-solver=CbcSolver()
-```
 #### Example with slack variables included
-```@example cep
+```julia
 slack_result = run_opt(ts_clust_data,cep_data;solver=solver,descriptor="slack",lost_el_load_cost=1e6, lost_CO2_emission_cost=700)
-slack_result.status
 ```
 #### Example for simple storage
 !!! note
     In simple or intradaystorage the storage level is enforced to be the same at the beginning and end of each day. The variable 'INTRASTORAGE' is tracking the storage level within each day of the representative periods.
-```@example cep
+```julia
 simplestor_result = run_opt(ts_clust_data,cep_data;solver=solver,descriptor="simple storage",storage="simple")
-simplestor_result.status
 ```
 #### Example for seasonal storage
 !!! note
     In seasonalstorage the storage level is enforced to be the same at the beginning and end of the original time-series. The new variable 'INTERSTORAGE' tracks the storage level throughout the days (or periods) of the original time-series. The variable 'INTRASTORAGE' is tracking the storage level within each day of the representative periods.
-```@example cep
+```julia
 seasonalstor_result = run_opt(ts_clust_data,cep_data;solver=solver,descriptor="seasonal storage",storage="seasonal",k_ids=run_clust(ts_input_data;method="kmeans",representation="centroid",n_init=5,n_clust=5).best_ids)
-seasonalstor_result.status
 ```
 ## Get Functions
 The get functions allow an easy access to the information included in the result.
@@ -335,7 +323,7 @@ get_cep_design_variables
 ### Examples
 #### Example plotting Capacities
 
-```@example cep
+```julia
 co2_result = run_opt(ts_clust_data,cep_data;solver=solver,descriptor="co2",co2_limit=500) #hide
 using Plots
 # use the get variable set in order to get the labels: indicate the variable as "CAP" and the set-number as 1 to receive those set values
