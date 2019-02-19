@@ -148,9 +148,9 @@ function OptVariable(jumparray::JuMP.Array, type::String)
 function OptVariable(cep::OptModelCEP,
                      variable::Symbol,
                      type::String)
-  jumparray=getvalue(cep.model[variable])
+  jumparray=value.(cep.model[variable])
   axes_names=Array{String,1}()
-  for axe in jumparray.indexsets
+  for axe in jumparray.axes
     for (name, val) in cep.set
       if axe==val
         push!(axes_names, name)
@@ -158,7 +158,7 @@ function OptVariable(cep::OptModelCEP,
       end
     end
   end
-  OptVariable(jumparray.innerArray,axes_names,jumparray.indexsets,type)
+  OptVariable(jumparray.data,axes_names,jumparray.axes,type)
 end
 
 "OptResult"

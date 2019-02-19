@@ -48,15 +48,19 @@ function setup_cep_opt_basic(ts_data::ClustData,opt_data::CEPData)
 function setup_opt_cep_basic(ts_data::ClustData,
                             opt_data::OptDataCEP,
                             opt_config::Dict{String,Any},
-                            solver::Any;
-                            kwargs...)
+                            optimizer::DataType;
+                            print_level::Int64=0)
    ## MODEL CEP ##
    # Initialize model
-   model=Model(solver=solver)
+   if string.(optimizer)=="Gurobi.Optimizer"
+     model = JuMP.Model(with_optimizer(optimizer,OutputFlag=print_level))
+   else
+     model = JuMP.Model(with_optimizer(optimizer))
+   end
    # Initialize info
    info=[opt_config["descriptor"]]
    # Setup set
-   set=setup_opt_cep_set(ts_data, opt_data, opt_config; kwargs...)
+   set=setup_opt_cep_set(ts_data, opt_data, opt_config)
    # Setup Model CEP
    return OptModelCEP(model,info,set)
  end
@@ -533,8 +537,9 @@ function solve_opt_cep(cep::OptModelCEP,
                             ts_data::ClustData,
                             opt_data::OptDataCEP,
                             opt_config::Dict{String,Any})
-  status=solve(cep.model)
-  objective=getobjectivevalue(cep.model)
+  optimize!(cep.model)
+  status=Symbol(termination_status(cep.model))
+  objective=objective_value(cep.model)
   total_demand=get_total_demand(cep,ts_data)
   variables=Dict{String,OptVariable}()
   # cv - Cost variable, dv - design variable, which is used to fix variables in a dispatch model, ov - operational variable

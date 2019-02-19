@@ -8,22 +8,11 @@
  #TODO other way of including module
 module ClustForOpt_priv
 
-  #using Reexport
-  using Distances
-  using Clustering
+  using Reexport
+  using StatsKit
   using JLD2
   using FileIO
-  #TODO Update TimeWarp
-  #using TimeWarp
-  using Statistics
-  using LinearAlgebra
-  using CSV
   using JuMP
-  using Clp
-  using Gurobi
-  #@reexport \
-  using DataFrames
-   #TODO how to make PyPlot, PyCall, and TimeWarp optional? -> only import when needed
 
    export run_opt,
           run_clust,
