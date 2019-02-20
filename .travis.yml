@@ -23,5 +23,11 @@ jobs:
         - julia --project=docs/ docs/make.jl
       name: "HTML"
       after_success:
+    - stage: "Testing"
+      julia: 1.0
+      os: linux
+      script:
         - julia -e 'cd(Pkg.dir("ClustForOpt", "test")); include("cep.jl")'
+      name: "HTML"
+      after_success:
 services: docker
