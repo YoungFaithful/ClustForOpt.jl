@@ -69,7 +69,7 @@ function run_opt(ts_data::ClustData,
   # Add the fixed_design_variables and new setting for slack costs to the existing config
   set_opt_config_cep!(opt_config;fixed_design_variables=fixed_design_variables, lost_load_cost=lost_load_cost, lost_emission_cost=lost_emission_cost)
 
-  return run_opt(ts_data,opt_data,opt_confi,optimizer)
+  return run_opt(ts_data,opt_data,opt_config,optimizer)
 end
 
 """
