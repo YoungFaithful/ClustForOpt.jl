@@ -240,11 +240,7 @@ function run_clust_predefined_medoid(data_norm::ClustDataMerged,
   end
 
 """
-function run_clust_kmeans_centroid(
-    data_norm::ClustDataMerged,
-    n_clust::Int,
-    iterations::Int
-    )
+    run_clust_kmeans_centroid(data_norm::ClustDataMerged,n_clust::Int,iterations::Int)
 """
 function run_clust_kmeans_centroid(
     data_norm::ClustDataMerged,
