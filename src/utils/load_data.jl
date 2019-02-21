@@ -1,58 +1,84 @@
 """
-function load_timeseriesdata(application::String, region::String, K-#Periods, T-#Segments)
+    load_timeseries_data(application::String, region::String, T-#Segments,
+years::Array{Int64,1}=# years to be selected for the time series)
 Loading from .csv files in a the folder ../ClustForOpt/data/{application}/{region}/TS
 Timestamp-column has to be called Timestamp
 Other columns have to be called with the location/node name
 for application:
-- DAM Day Ahead Market
-- CEP Capacity Expansion Problem
+- `DAM`: Day Ahead Market
+- `CEP`: Capacity Expansion Problem
 and regions:
-- GER Germany
-- CA California
-- TX Texas
+- `"GER_1"`: Germany 1 node
+- `"GER_18"`: Germany 18 nodes
+- `"CA_1"`: California 1 node
+- `"CA_14"`: California 14 nodes
+- `"TX_1"`: Texas 1 node
 """
 function load_timeseries_data( application::String,
                               region::String;
-                              K=365::Int,
-                              T=24::Int
-                              )
+                              T::Int64=24,
+                              years::Array{Int64,1}=[2016])
   dt = Dict{String,Array}()
   num=0
+  K=0
+  # Generate the data path based on application and region
   data_path=normpath(joinpath(dirname(@__FILE__),"..","..","data",application,region,"TS"))
+  #Loop through all available files
   for fulldataname in readdir(data_path)
       dataname=split(fulldataname,".")[1]
+      #Load the data
       data_df=CSV.read(joinpath(data_path,fulldataname);allowmissing=:none)
-      for column in eachcol(data_df, true)
-          if findall([:Timestamp,:time,:Time,:Zeit].==(column[1]))==[]
-              dt[dataname*"-"*string(column[1])]=Float64.(column[2])
-              newnum=length(column[2])
-              if newnum!=num && num!=0
-                  @error("The TimeSeries have different lengths!")
-              else
-                  num=newnum
-              end
-          end
-      end
+      # Add it to the dictionary
+      K=add_timeseries_data!(dt,dataname, data_df; K=K, T=T, years=years)
   end
-  data_full =  FullInputData(region, num, dt)
-  data_reshape =  ClustData(data_full,K,T)
-  return data_reshape, data_full
-end #load_pricedata
+  # Store the data
+  ts_input_data =  ClustData(FullInputData(region, years, num, dt),K,T)
+  return ts_input_data
+end #load_timeseries_data
 
 """
-function load_cep_data(region::String)
+    add_timeseries_data!(dt::Dict{String,Array}, data::DataFrame; K::Int64=0, T::Int64=24, years::Array{Int64,1}=[2016])
+selects first the years and second the data_points so that their number is a multiple of T and same with the other timeseries
+"""
+function add_timeseries_data!(dt::Dict{String,Array},
+                            dataname::SubString,
+                            data::DataFrame;
+                            K::Int64=0,
+                            T::Int64=24,
+                            years::Array{Int64,1}=[2016])
+    # find the right years to select
+    data_selected=data[in.(data[:year],[years]),:]
+    for column in eachcol(data_selected, true)
+        # check that this column isn't time or year
+        if !(column[1] in [:Timestamp,:time,:Time,:Zeit,:year])
+            K_calc=Int(floor(length(column[2])/T))
+            if K_calc!=K && K!=0
+                @error("The time_series $(column[1]) has K=$K_calc != K=$K of the previous")
+            else
+                K=K_calc
+            end
+            dt[dataname*"-"*string(column[1])]=Float64.(column[2][1:(Int(T*K))])
+        end
+    end
+    return K
+end
+
+"""
+    load_cep_data(region::String)
 Loading from .csv files in a the folder ../ClustForOpt/data/CEP/{region}/
 Follow instructions for the CSV-Files:
-    nodes       nodes x region, infrastruct, capacity_of_different_tech... in MW_el
-    var_costs   tech x [USD for fossils: in USD/MWh_el, CO2 in kg-CO₂-eq./MWh_el] # Variable costs per year
-    fix_costs   tech x [USD in USD/MW_el, CO2 in kg-CO₂-eq./MW_el] # Fixed costs per year
-    cap_costs   tech x [USD in USD/MW_el, CO2 in kg-CO₂-eq./MW_el] # Entire (NOT annulized) Costs per Investment in technology
-    techs       tech x [categ,sector,lifetime in years,effic in %,fuel]
-    lines       lines x [node_start,node_end,reactance,resistance,power,voltage,circuits,length]
+- `nodes`:       `nodes x region, infrastruct, capacity-of-different-tech... in MW_el`
+- `var_costs`:     `tech x [USD for fossils: in USD/MWh_el, CO2 in kg-CO₂-eq./MWh_el]` # Variable costs per year
+- `fix_costs`:     `tech x [USD in USD/MW_el, CO2 in kg-CO₂-eq./MW_el]` # Fixed costs per year
+- `cap_costs`:     `tech x [USD in USD/MW_el, CO2 in kg-CO₂-eq./MW_el]` # Entire (NOT annulized) Costs per Investment in technology
+- `techs`:        `tech x [categ,sector,lifetime in years,effic in %,fuel]`
+- `lines`:       `lines x [node_start,node_end,reactance,resistance,power,voltage,circuits,length]`
 for regions:
-- GER Germany
-- CA California
-- TX Texas
+- `"GER_1"`: Germany 1 node
+- `"GER_18"`: Germany 18 nodes
+- `"CA_1"`: California 1 node
+- `"CA_14"`: California 14 nodes
+- `"TX_1"`: Texas 1 node
 """
 function load_cep_data(region::String)
   data_path=normpath(joinpath(dirname(@__FILE__),"..","..","data","CEP",region))

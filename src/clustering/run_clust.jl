@@ -1,36 +1,22 @@
 
 """
-function run_clust(
-      data::ClustData;
-      norm_op::String="zscore",
-      norm_scope::String="full",
-      method::String="kmeans",
-      representation::String="centroid",
-      n_clust::Int=5,
-      n_init::Int=100,
-      iterations::Int=300,
-      save::String="",
-      attribute_weights::Dict{String,Float64}=Dict{String,Float64}(),
-      get_all_clust_results::Bool=false,
-      kwargs...
-    )
-
+    run_clust(data::ClustData;norm_op::String="zscore",norm_scope::String="full",method::String="kmeans",representation::String="centroid",n_clust::Int=5,n_init::Int=100,iterations::Int=300,save::String="",attribute_weights::Dict{String,Float64}=Dict{String,Float64}(),get_all_clust_results::Bool=false,kwargs...)
 norm_op: "zscore", "01"(not implemented yet)
 norm_scope: "full","sequence","hourly"
 method: "kmeans","kmedoids","kmedoids_exact","hierarchical"
 representation: "centroid","medoid"
 """
-function run_clust(
-      data::ClustData;
+function run_clust(data::ClustData;
       norm_op::String="zscore",
       norm_scope::String="full",
       method::String="kmeans",
       representation::String="centroid",
       n_clust::Int=5,
+      n_seg::Int=data.T,
       n_init::Int=100,
       iterations::Int=300,
       attribute_weights::Dict{String,Float64}=Dict{String,Float64}(),
-      save::String="",
+      save::String="",#QUESTION dead?
       get_all_clust_results::Bool=false,
       kwargs...
     )
@@ -41,9 +27,56 @@ function run_clust(
     # normalize
     # TODO: implement 0-1 normalization and add as a choice to runclust
     data_norm = z_normalize(data;scope=norm_scope)
-    data_norm_att = attribute_weighting(data_norm,attribute_weights)
-    data_norm_merged = ClustDataMerged(data_norm_att)
+    if !isempty(attribute_weights)
+      data_norm = attribute_weighting(data_norm,attribute_weights)
+    end
+    data_norm_merged = ClustDataMerged(data_norm)
 
+    #clustering
+    b_merged, cost, cost_best, iter =run_clust(data_norm_merged, data; method=method, representation=representation, n_clust=n_clust, n_init=n_init, iterations=iterations, orig_k_ids=deepcopy(data.k_ids), kwargs...)
+
+     if n_seg!=b_merged.T &&  n_seg!=0
+       b_merged=intraperiod_segmentation(b_merged;n_seg=n_seg,norm_scope=norm_scope,iterations=iterations)
+     else
+       n_seg=b_merged.T
+     end
+
+    # transfer into ClustData format
+    best_results = ClustData(b_merged)
+    clust_config = set_clust_config(;norm_op=norm_op, norm_scope=norm_scope, method=method, representation=representation, n_clust=n_clust, n_seg=n_seg, n_init=n_init, iterations=iterations, attribute_weights=attribute_weights)
+    # save all locally converged solutions and the best into a struct
+
+    if get_all_clust_results
+      clust_result = ClustResultAll(best_results,b_merged.k_ids,cost_best,data_norm_merged.data_type,clust_config,b_merged.centers,b_merged.weights,b_merged.k_ids,cost,iter)
+    else
+      clust_result =  ClustResultBest(best_results,b_merged.k_ids,cost_best,data_norm_merged.data_type,clust_config)
+    end
+    #TODO save in save file
+    return clust_result
+end
+
+"""
+function run_clust(data_norm_merged::ClustDataMerged;
+                  method::String="kmeans",
+                  representation::String="centroid",
+                  n_clust::Int=5,
+                  n_init::Int=100,
+                  iterations::Int=300,
+                  orig_k_ids::Array{Int64,1}=Array{Int64,1}(),
+                  kwargs...)
+
+method: "kmeans","kmedoids","kmedoids_exact","hierarchical"
+representation: "centroid","medoid"
+"""
+function run_clust(data_norm_merged::ClustDataMerged,
+                  data::ClustData;
+                  method::String="kmeans",
+                  representation::String="centroid",
+                  n_clust::Int=5,
+                  n_init::Int=100,
+                  iterations::Int=300,
+                  orig_k_ids::Array{Int64,1}=Array{Int64,1}(),
+                  kwargs...)
     # initialize data arrays
     centers = Array{Array{Float64},1}(undef,n_init)
     clustids = Array{Array{Int,1},1}(undef,n_init)
@@ -52,7 +85,6 @@ function run_clust(
     iter = Array{Int,1}(undef,n_init)
 
     # clustering
-
     for i = 1:n_init
        # TODO: implement shape based clustering methods
        # function call to the respective function (method + representation)
@@ -65,45 +97,21 @@ function run_clust(
         centers[i] = resize_medoids(data,centers[i],weights[i])
       end
     end
-
     # find best
- # TODO: write as function
+    # TODO: write as function
     cost_best,ind_mincost = findmin(cost)  # along dimension 2, only store indice
 
+    k_ids=orig_k_ids
+    k_ids[findall(orig_k_ids.!=0)]=clustids[ind_mincost]
     # save in merged format as array
     # NOTE if you need clustered data more precise than 8 digits change the following line accordingly
      n_digits_data_round=8 # Gurobi throws warning when rounding errors on order~1e-13 are passed in. Rounding errors occur in clustering of many zeros (e.g. solar).
-     b_merged = ClustDataMerged(data_norm_merged.region,n_clust,data_norm_merged.T,round.(centers[ind_mincost]; digits=n_digits_data_round),data_norm_merged.data_type,weights[ind_mincost])
-    # transfer into ClustData format
-    best_results = ClustData(b_merged)
-    best_ids = clustids[ind_mincost]
-    clust_config = set_clust_config(;norm_op=norm_op, norm_scope=norm_scope, method=method, representation=representation, n_clust=n_clust, n_init=n_init, iterations=iterations, attribute_weights=attribute_weights)
-    # save all locally converged solutions and the best into a struct
-    if get_all_clust_results
-      clust_result = ClustResultAll(best_results,best_ids,cost_best,data_norm_merged.data_type,clust_config,centers,weights,clustids,cost,iter)
-    else
-      clust_result =  ClustResultBest(best_results,best_ids,cost_best,data_norm_merged.data_type,clust_config)
-    end
-    #TODO save in save file
-    return clust_result
-end
+     return ClustDataMerged(data_norm_merged.region,data_norm_merged.years,n_clust,data_norm_merged.T,round.(centers[ind_mincost]; digits=n_digits_data_round),data_norm_merged.data_type,weights[ind_mincost],k_ids), cost, cost_best, iter
+ end
 
 """
-function run_clust(
-      data::ClustData,
-      n_clust_ar::Array{Int,1};
-      norm_op::String="zscore",
-      norm_scope::String="full",
-      method::String="kmeans",
-      representation::String="centroid",
-      n_init::Int=100,
-      iterations::Int=300,
-      save::String="",
-      kwargs...
-    )
-
+    run_clust(data::ClustData,n_clust_ar::Array{Int,1};norm_op::String="zscore",norm_scope::String="full",method::String="kmeans",representation::String="centroid",n_init::Int=100,iterations::Int=300,save::String="",kwargs...)
 This function is a wrapper function around run_clust(). It runs multiple number of clusters k and returns an array of results.
-
 norm_op: "zscore", "01"(not implemented yet)
 norm_scope: "full","sequence","hourly"
 method: "kmeans","kmedoids","kmedoids_exact","hierarchical"
@@ -134,9 +142,10 @@ sup_kw_args["region"]=["GER","CA"]
 sup_kw_args["opt_problems"]=["battery","gas_turbine"]
 sup_kw_args["norm_op"]=["zscore"]
 sup_kw_args["norm_scope"]=["full","hourly","sequence"]
-sup_kw_args["method+representation"]=["kmeans+centroid","kmeans+medoid","kmedoids+medoid","kmedoids_exact+medoid","hierarchical+centroid","hierarchical+medoid"]#["dbaclust+centroid","kshape+centroid"]
+sup_kw_args["method+representation"]=["kmeans+centroid","kmeans+medoid","kmedoids+medoid","kmedoids_exact+medoid","hierarchical+centroid","hierarchical+medoid","predefined+centroid","predefined+medoid"]#["dbaclust+centroid","kshape+centroid"]
 
 """
+    get_sup_kw_args
 Returns supported keyword arguments for clustering function run_clust()
 """
 function get_sup_kw_args()
@@ -146,7 +155,7 @@ end
 
 
 """
-check_kw_args(region,opt_problems,norm_op,norm_scope,method,representation)
+    check_kw_args(region,opt_problems,norm_op,norm_scope,method,representation)
 checks if the arguments supplied for run_clust are supported
 """
 function check_kw_args(
@@ -185,6 +194,50 @@ function check_kw_args(
        error(error_string)
     end
 end
+
+"""
+      run_clust_predefined_centroid(data_norm::ClustDataMerged,n_clust::Int,iterations::Int;k_ids::Array{Int64,1}=Array{Int64,1}())
+Provide the assigned k_ids before running any clustering within this run
+"""
+function run_clust_predefined_centroid(
+    data_norm::ClustDataMerged,
+    n_clust::Int,
+    iterations::Int;
+    k_ids::Array{Int64,1}=Array{Int64,1}()
+    )
+    centers,weights,clustids,cost,iter =[],[],[],0,0
+    # if only one cluster
+    if n_clust == length(unique(k_ids))
+        centers_norm=zeros(size(data_norm.data,1),n_clust)
+        for i in 1:n_clust
+          index=findall(k_ids.==i)
+          centers_norm[:,i] = mean(data_norm.data[:,index],dims=2) # should be 0 due to normalization
+        end
+        clustids = k_ids
+        centers = undo_z_normalize(centers_norm,data_norm.mean,data_norm.sdv;idx=clustids) # need to provide idx in case that sequence-based normalization is used
+        cost = sum(pairwise(SqEuclidean(),centers_norm,data_norm.data)) #same as sum((seq_norm-repmat(mean(seq_norm,2),1,size(seq,2))).^2)
+        iter = 1
+    # kmeans() in Clustering.jl is implemented for k>=2
+    else
+        throw(@error "mismatch of intendet clusters $n_clust and k_ids provided with $(length(unique(k_ids)))")
+    end
+
+    weights = calc_weights(clustids,n_clust)
+
+    return centers,weights,clustids,cost,iter
+end
+
+"""
+      run_clust_predefined_medoid(data_norm::ClustDataMerged,n_clust::Int,iterations::Int;k_ids::Array{Int64,1}=Array{Int64,1}())
+Provide the assigned k_ids before running any clustering within this run
+"""
+function run_clust_predefined_medoid(data_norm::ClustDataMerged,
+    n_clust::Int,
+    iterations::Int;
+    k_ids::Array{Int64,1}=Array{Int64,1}()
+    )
+    return run_clust_predefined_centroid(data_norm, n_clust, iterations; k_ids=k_ids)
+  end
 
 """
 function run_clust_kmeans_centroid(
@@ -229,10 +282,10 @@ function run_clust_kmeans_centroid(
 end
 
 """
-function run_clust_kmeans_medoid(
-    data_norm::ClustDataMerged,
-    n_clust::Int,
-    iterations::Int
+    run_clust_kmeans_medoid(
+      data_norm::ClustDataMerged,
+      n_clust::Int,
+      iterations::Int
     )
 """
 function run_clust_kmeans_medoid(
@@ -272,10 +325,10 @@ function run_clust_kmeans_medoid(
 end
 
 """
-function run_clust_kmedoids_medoid(
-    data_norm::ClustDataMerged,
-    n_clust::Int,
-    iterations::Int
+    run_clust_kmedoids_medoid(
+      data_norm::ClustDataMerged,
+      n_clust::Int,
+      iterations::Int
     )
 """
 function run_clust_kmedoids_medoid(
@@ -300,11 +353,11 @@ function run_clust_kmedoids_medoid(
 end
 
 """
-function run_clust_kmedoids_exact_medoid(
-    data_norm::ClustDataMerged,
-    n_clust::Int,
-    iterations::Int;
-    gurobi_env=0
+    run_clust_kmedoids_exact_medoid(
+      data_norm::ClustDataMerged,
+      n_clust::Int,
+      iterations::Int;
+      gurobi_env=0
     )
 """
 function run_clust_kmedoids_exact_medoid(
@@ -331,23 +384,23 @@ function run_clust_kmedoids_exact_medoid(
 end
 
 """
-function run_clust_hierarchical(
-    data_norm::ClustDataMerged,
-    n_clust::Int,
-    iterations::Int;
-    _dist::SemiMetric = SqEuclidean()
+    run_clust_hierarchical(
+      data_norm::ClustDataMerged,
+      n_clust::Int,
+      iterations::Int;
+      _dist::SemiMetric = SqEuclidean()
     )
 
 Helper function to run run_clust_hierarchical_centroids and run_clust_hierarchical_medoid
 """
 function run_clust_hierarchical(
-    data_norm::ClustDataMerged,
+    data::Array{Float64,2},
     n_clust::Int,
     iterations::Int;
     _dist::SemiMetric = SqEuclidean()
     )
 
-    d_mat=pairwise(_dist,data_norm.data)
+    d_mat=pairwise(_dist,data)
     r=hclust(d_mat,linkage=:ward_presquared)
     clustids = cutree(r,k=n_clust)
     weights = calc_weights(clustids,n_clust)
@@ -356,11 +409,11 @@ function run_clust_hierarchical(
 end
 
 """
-function run_clust_hierarchical_centroid(
-    data_norm::ClustDataMerged,
-    n_clust::Int,
-    iterations::Int;
-    _dist::SemiMetric = SqEuclidean()
+    run_clust_hierarchical_centroid(
+      data_norm::ClustDataMerged,
+      n_clust::Int,
+      iterations::Int;
+      _dist::SemiMetric = SqEuclidean()
     )
 """
 function run_clust_hierarchical_centroid(
@@ -369,7 +422,7 @@ function run_clust_hierarchical_centroid(
     iterations::Int;
     _dist::SemiMetric = SqEuclidean()
     )
-    ~,weights,clustids,~,iter= run_clust_hierarchical(data_norm,n_clust,iterations;_dist=_dist)
+    x,weights,clustids,x,iter= run_clust_hierarchical(data_norm.data,n_clust,iterations;_dist=_dist)
     centers_norm = calc_centroids(data_norm.data,clustids)
     cost = calc_SSE(data_norm.data,centers_norm,clustids)
     centers = undo_z_normalize(centers_norm,data_norm.mean,data_norm.sdv;idx=clustids)
@@ -378,11 +431,11 @@ function run_clust_hierarchical_centroid(
 end
 
 """
-function run_clust_hierarchical_medoid(
-    data_norm::ClustDataMerged,
-    n_clust::Int,
-    iterations::Int;
-    _dist::SemiMetric = SqEuclidean()
+    run_clust_hierarchical_medoid(
+      data_norm::ClustDataMerged,
+      n_clust::Int,
+      iterations::Int;
+      _dist::SemiMetric = SqEuclidean()
     )
 """
 function run_clust_hierarchical_medoid(
