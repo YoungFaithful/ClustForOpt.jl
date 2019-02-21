@@ -96,30 +96,10 @@ function SimpleExtremeValueDescr(data_type::String,
 end
 
 """
-struct OptDataCEP <: OptData
-   region::String          name of state or region data belongs to
-   nodes::DataFrame        nodes x region, infrastruct, capacity_of_different_tech...
-   var_costs::DataFrame    tech x [USD, CO2]
-   fix_costs::DataFrame    tech x [USD, CO2]
-   cap_costs::DataFrame    tech x [USD, CO2]
-   techs::DataFrame        tech x [categ,sector,lifetime,effic,fuel,annuityfactor]
-   instead of USD you can also use your favorite currency like EUR
-"""
-struct OptDataCEP <: OptData
-   region::String
-   nodes::DataFrame
-   var_costs::DataFrame
-   fix_costs::DataFrame
-   cap_costs::DataFrame
-   techs::DataFrame
-   lines::DataFrame
-end
-
-"""
-struct OptModelCEP
-  model::JuMP.Model
-  info::Array{String}
-  set::Dict{String,Array}
+     OptModelCEP
+-model::JuMP.Model
+-info::Array{String}
+-set::Dict{String,Array}
 """
 struct OptModelCEP
   model::JuMP.Model
@@ -128,11 +108,11 @@ struct OptModelCEP
 end
 
 """
-struct OptVariable
-  data::Array - includes the optimization variable output in  form of an array
-  axes_names::Array{String,1} - includes the names of the different axes and is equivalent to the sets in the optimization formulation
-  axes::Tuple - includes the values of the different axes of the optimization variables
-  type::String - defines the type of the variable being cv - cost variable - dv -design variable - ov - operating variable - sv - slack variable
+     OptVariable
+-`data::Array` - includes the optimization variable output in  form of an array
+-`axes_names::Array{String,1}`` - includes the names of the different axes and is equivalent to the sets in the optimization formulation
+-`axes::Tuple` - includes the values of the different axes of the optimization variables
+-`type::String` - defines the type of the variable being cv - cost variable - dv -design variable - ov - operating variable - sv - slack variable
 """
 struct OptVariable
  data::Array
@@ -142,8 +122,8 @@ struct OptVariable
 end
 
 """
-function OptVariable(jumparray::JuMP.Array, type::String)
-  Constructor for OptVariable taking JuMP Array and type (ov-operational variable or dv-decision variable)
+    OptVariable(cep::OptModelCEP, variable::Symbol, type::String)
+Constructor for OptVariable taking JuMP Array and type (ov-operational variable or dv-decision variable)
 """
 function OptVariable(cep::OptModelCEP,
                      variable::Symbol,
@@ -173,11 +153,30 @@ struct OptResult
 end
 
 """
-struct Scenario
-  descriptor::String
-  clust_res::ClustResult
-  opt_res::OptResult
+     OptDataCEP <: OptData
+-`region::String`          name of state or region data belongs to
+-`nodes::DataFrame`        nodes x region, infrastruct, capacity_of_different_tech...
+-`var_costs::DataFrame`   tech x [USD, CO2]
+-`fix_costs::DataFrame`    tech x [USD, CO2]
+-`cap_costs::DataFrame`    tech x [USD, CO2]
+-`techs::DataFrame`       tech x [categ,sector,lifetime,effic,fuel,annuityfactor]
+instead of USD you can also use your favorite currency like EUR
+"""
+struct OptDataCEP <: OptData
+   region::String
+   nodes::DataFrame
+   var_costs::DataFrame
+   fix_costs::DataFrame
+   cap_costs::DataFrame
+   techs::DataFrame
+   lines::DataFrame
 end
+
+"""
+     Scenario
+-`descriptor::String`
+-`clust_res::ClustResult`
+-`opt_res::OptResult`
 """
 struct Scenario
  descriptor::String
@@ -189,7 +188,7 @@ end
 #### Constructors for data structures###
 
 """
- function FullInputData(region::String,
+    FullInputData(region::String,
                         N::Int;
                         el_price::Array=[],
                         el_demand::Array=[],
@@ -216,9 +215,7 @@ function FullInputData(region::String,
 end
 
 """
-constructor 1 for ClustData: provide data individually
-
-function ClustData(region::String,
+  ClustData(region::String,
                          years::Array{Int64,1},
                          K::Int,
                          T::Int;
@@ -226,9 +223,13 @@ function ClustData(region::String,
                          el_demand::Array=[],
                          solar::Array=[],
                          wind::Array=[],
+                         weights::Array{Float64}=ones(K),
                          mean::Dict{String,Array}=Dict{String,Array}(),
-                         sdv::Dict{String,Array}=Dict{String,Array}()
+                         sdv::Dict{String,Array}=Dict{String,Array}(),
+                         deltas::Array{Float64,2}=ones(T,K),
+                         k_ids::Array{Int64,1}=collect(1:K)
                          )
+constructor 1 for ClustData: provide data individually
 """
 function ClustData(region::String,
                          years::Array{Int64,1},
@@ -280,16 +281,18 @@ function ClustData(region::String,
 end
 
 """
+    ClustData(region::String,
+                      years::Array{Int64,1},
+                      K::Int,
+                      T::Int,
+                      data::Dict{String,Array},
+                      weights::Array{Float64},
+                      deltas::Array{Float64,2},
+                      k_ids::Array{Int64,1};
+                      mean::Dict{String,Array}=Dict{String,Array}(),
+                      sdv::Dict{String,Array}=Dict{String,Array}()
+                      )
 constructor 2 for ClustData: provide data as dict
-
-function ClustData(region::String,
-                       years::Array{Int64,1},
-                       K::Int,
-                       T::Int,
-                       data::Dict{String,Array};
-                       mean::Dict{String,Array}=Dict{String,Array}(),
-                       sdv::Dict{String,Array}=Dict{String,Array}()
-                       )
 """
 function ClustData(region::String,
                        years::Array{Int64,1},
@@ -315,9 +318,8 @@ function ClustData(region::String,
 end
 
 """
+    ClustData(data::ClustDataMerged)
 constructor 3: Convert ClustDataMerged to ClustData
-
-function ClustData(data::ClustDataMerged)
 """
 function ClustData(data::ClustDataMerged)
  data_dict=Dict{String,Array}()
@@ -330,8 +332,8 @@ function ClustData(data::ClustDataMerged)
 end
 
 """
+    ClustData(data::FullInputData,K,T)
 constructor 4: Convert FullInputData to ClustData
-function ClustData(data::FullInputData,K,T)
 """
 function ClustData(data::FullInputData,
                                  K::Int,
@@ -344,17 +346,18 @@ function ClustData(data::FullInputData,
 end
 
 """
+    ClustDataMerged(region::String,
+                        years::Array{Int64,1},
+                        K::Int,
+                        T::Int,
+                        data::Array,
+                        data_type::Array{String},
+                        weights::Array{Float64},
+                        k_ids::Array{Int64,1};
+                        mean::Dict{String,Array}=Dict{String,Array}(),
+                        sdv::Dict{String,Array}=Dict{String,Array}()
+                        )
 constructor 1: construct ClustDataMerged
-function ClustDataMerged(region::String,
-                       years::Array{Int64,1},
-                       K::Int,
-                       T::Int,
-                       data::Array,
-                       data_type::Array{String},
-                       weights::Array{Float64};
-                       mean::Dict{String,Array}=Dict{String,Array}(),
-                       sdv::Dict{String,Array}=Dict{String,Array}()
-                       )
 """
 function ClustDataMerged(region::String,
                        years::Array{Int64,1},
@@ -379,9 +382,8 @@ function ClustDataMerged(region::String,
 end
 
 """
+    ClustDataMerged(data::ClustData)
 constructor 2: convert ClustData into merged format
-
-function ClustDataMerged(data::ClustData)
 """
 function ClustDataMerged(data::ClustData)
  n_datasets = length(keys(data.data))

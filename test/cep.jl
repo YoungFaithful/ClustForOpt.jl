@@ -2,7 +2,8 @@ using Test
 using Clp
 
 @testset "merrick texas" begin
-    include(normpath(joinpath(dirname(@__FILE__),"..","src","ClustForOpt_priv_development.jl")))
+    using ClustForOpt
+    using Clp
     # load data
     ts_input_data = load_timeseries_data("CEP", "TX_1"; T=24, years=[2008])
     cep_input_data=load_cep_data("TX_1")
@@ -19,7 +20,8 @@ using Clp
 end
 
 @testset "seasonalstorage" begin
-    include(normpath(joinpath(dirname(@__FILE__),"..","src","ClustForOpt_priv_development.jl")))
+    using ClustForOpt
+    using Clp
     # load data
     ts_input_data_8760 = load_timeseries_data("CEP", "GER_1";T=8760,years=[2015])
     ts_input_data_24 = load_timeseries_data("CEP", "GER_1";T=24,years=[2015])

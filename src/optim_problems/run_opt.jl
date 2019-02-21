@@ -1,6 +1,6 @@
 """
-function run_opt(ts_data::ClustData,opt_data::OptDataCEP,opt_config::Dict{String,Any},optimizer::DataType)
-  organizing the actual setup and run of the CEP-Problem
+    run_opt(ts_data::ClustData,opt_data::OptDataCEP,opt_config::Dict{String,Any};optimizer::DataType)
+organizing the actual setup and run of the CEP-Problem
 """
 function run_opt(ts_data::ClustData,
                     opt_data::OptDataCEP,
@@ -46,14 +46,14 @@ function run_opt(ts_data::ClustData,
 end
 
 """
-function run_opt(ts_data::ClustData,opt_data::OptDataCEP,fixed_design_variables::Dict{String,OptVariable},optimizer::DataTyple),lost_el_load_cost::Number=Inf,            lost_CO2_emission_cost::Number,)
-  Wrapper function for type of optimization problem for the CEP-Problem (NOTE: identifier is the type of opt_data - in this case OptDataCEP - so identification as CEP problem)
-  This problem runs the operational optimization problem only, with fixed design variables.
-  provide the fixed design variables and the opt_config of the previous step (design run or another opterational run)
-  what you can add to the opt_config:
-  lost_el_load_cost: Number indicating the lost load price/MWh (should be greater than 1e6),   give Inf for none
-  lost_CO2_emission_cost: Number indicating the emission price/kg-CO2 (should be greater than 1e6), give Inf for none
-  give Inf for both lost_cost for no slack
+     run_opt(ts_data::ClustData,opt_data::OptDataCEP,fixed_design_variables::Dict{String,OptVariable},optimizer::DataTyple;lost_el_load_cost::Number=Inf,lost_CO2_emission_cost::Number)
+Wrapper function for type of optimization problem for the CEP-Problem (NOTE: identifier is the type of `opt_data` - in this case OptDataCEP - so identification as CEP problem)
+This problem runs the operational optimization problem only, with fixed design variables.
+provide the fixed design variables and the `opt_config` of the previous step (design run or another opterational run)
+what you can add to the opt_config:
+- `lost_el_load_cost`: Number indicating the lost load price/MWh (should be greater than 1e6),   give Inf for none
+- `lost_CO2_emission_cost`: Number indicating the emission price/kg-CO2 (should be greater than 1e6), give Inf for none
+- give Inf for both lost_cost for no slack
 """
 function run_opt(ts_data::ClustData,
                     opt_data::OptDataCEP,
@@ -73,18 +73,17 @@ function run_opt(ts_data::ClustData,
 end
 
 """
-function run_opt(ts_data::ClustData,opt_data::OptDataCEP,fixed_design_variables::Dict{String,OptVariable},optimizer::Data,descriptor::String="",   ,co2_limit::Number=Inf, lost_el_load_cost::Number=Inf,lost_CO2_emission_cost::Number=Inf,existing_infrastructure::Bool=false,limit_infrasturcture::Bool=false, storage::String="none", transmission::Bool=false, print_flag::Bool=true,)
-
-  Wrapper function for type of optimization problem for the CEP-Problem (NOTE: identifier is the type of opt_data - in this case OptDataCEP - so identification as CEP problem)
-  options to tweak the model are to select a co2_limit, existing_infrastructure and simplestorage
-  descritor: String with the name of this paricular model like "kmeans-10-co2-500"
-  co2_limit: A number limiting the kg.-CO2-eq./MWh (normally in a range from 5-1250 kg-CO2-eq/MWh), give Inf or no kw if unlimited
-  lost_el_load_cost: Number indicating the lost load price/MWh (should be greater than 1e6),   give Inf for none
-  lost_CO2_emission_cost: Number indicating the emission price/kg-CO2 (should be greater than 1e6), give Inf for none
-    give Inf for both lost_cost for no slack
-  existing_infrastructure: true or false to include or exclude existing infrastructure to the model
-  storage: String "none" for no storage or "simple" to include simple (only intra-day storage) or "seasonal" to include seasonal storage (inter-day)
-- `print_level`: Indicate the depth of details to be printed by the optimizer
+     run_opt(ts_data::ClustData,opt_data::OptDataCEP,fixed_design_variables::Dict{String,OptVariable},optimizer::DataTyple;descriptor::String="",co2_limit::Number=Inf,lost_el_load_cost::Number=Inf,lost_CO2_emission_cost::Number=Inf,existing_infrastructure::Bool=false,intrastorage::Bool=false)
+Wrapper function for type of optimization problem for the CEP-Problem (NOTE: identifier is the type of `opt_data` - in this case OptDataCEP - so identification as CEP problem)
+options to tweak the model are:
+- `descritor`: String with the name of this paricular model like "kmeans-10-co2-500"
+- `co2_limit`: A number limiting the kg.-CO2-eq./MWh (normally in a range from 5-1250 kg-CO2-eq/MWh), give Inf or no kw if unlimited
+- `lost_el_load_cost`: Number indicating the lost load price/MWh (should be greater than 1e6),   give Inf for none
+- `lost_CO2_emission_cost`:
+  - Number indicating the emission price/kg-CO2 (should be greater than 1e6), give Inf for none
+  - give Inf for both lost_cost for no slack
+- `existing_infrastructure`: true or false to include or exclude existing infrastructure to the model
+- `storage`: String "none" for no storage or "simple" to include simple (only intra-day storage) or "seasonal" to include seasonal storage (inter-day)
 """
 function run_opt(ts_data::ClustData,
                  opt_data::OptDataCEP,
@@ -127,7 +126,7 @@ end # run_opt
 
 #TODO Rewrite battery problem
 """
-function run_battery_opt(data::ClustData)
+    run_battery_opt(data::ClustData)
 
 operational battery storage optimization problem
 runs every day seperately and adds results in the end
@@ -217,7 +216,7 @@ end # run_battery_opt()
  ###
 
 """
-function run_gas_opt(data::ClustData)
+    run_gas_opt(data::ClustData)
 
 operational gas turbine optimization problem
 runs every day seperately and adds results in the end

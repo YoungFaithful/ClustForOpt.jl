@@ -5,7 +5,6 @@
  # Analyzing clustering techniques as input for energy systems optimization
  #
  #####################
-
 using StatsKit
 using JLD2
 using FileIO

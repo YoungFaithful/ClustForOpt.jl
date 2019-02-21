@@ -86,7 +86,6 @@ function run_pure_clust(data::ClustData;
     for name in keys(mod_data)
       att=split(name,"-")[1]
       if name in clust || att in clust
-        println(name)
         mod_data[name][:,index]=repeat(clust_data.data[name][:,i], outer=(1,length(index)))
       end
     end

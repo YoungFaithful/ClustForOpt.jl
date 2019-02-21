@@ -1,8 +1,6 @@
 # This file exemplifies the workflow from data input to optimization result generation
-
-include(normpath(joinpath(dirname(@__FILE__),"..","src","ClustForOpt_priv_development.jl")))
-using Gurobi
-
+using ClustForOpt
+using Clp
 ## LOAD DATA ##
 state="GER_1" # or "GER_18" or "CA_1" or "TX_1"
 years=[2016] #2016 works for GER_1 and CA_1, GER_1 can also be used with 2006 to 2016 and, GER_18 is 2015 TX_1 is 2008
@@ -23,7 +21,7 @@ ts_full_data = run_clust(ts_input_data;method="kmeans",representation="centroid"
 
 ## OPTIMIZATION EXAMPLES##
 # select optimizer
-optimizer=Gurobi.Optimizer
+optimizer=Clp.Optimizer
 
 # tweak the CO2 level
 co2_result = run_opt(ts_clust_data.best_results,cep_data,optimizer;descriptor="co2",co2_limit=1000) #generally values between 1250 and 10 are interesting
@@ -53,7 +51,7 @@ seg_result = run_opt(ts_seg_data.best_results,cep_data,optimizer;descriptor="seg
 design_result = run_opt(ts_clust_data.best_results,cep_data,optimizer;descriptor="design&operation", co2_limit=50)
 
 #capacity_factors
-design_variables=get_cep_design_variables(design_result, capacity_factors=Dict{String,Number}("pv"=>1.2, "wind"=>1.0))
+design_variables=get_cep_design_variables(design_result)
 
 # Use the design variable results for the operational run
 operation_result = run_opt(ts_full_data.best_results,cep_data,design_result.opt_config,design_variables,optimizer;lost_el_load_cost=1e6,lost_CO2_emission_cost=700)

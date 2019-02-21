@@ -7,3 +7,4 @@
 *.eps
 *.png
 test.jl
+docs/build/
