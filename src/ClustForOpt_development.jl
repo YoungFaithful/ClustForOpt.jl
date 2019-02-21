@@ -5,23 +5,10 @@
  # Analyzing clustering techniques as input for energy systems optimization
  #
  #####################
- #TODO other way of including module
-#module ClustForOpt_priv
-
-using Distances
-using Clustering
+using StatsKit
 using JLD2
 using FileIO
-#TODO Update TimeWarp
-#using TimeWarp
-using Statistics
-using LinearAlgebra
-using CSV
 using JuMP
-using Clp
-#TODO make Gurobi optional
-using Gurobi
-using DataFrames
 
 
 
@@ -36,3 +23,5 @@ include(joinpath("clustering","run_clust.jl"))
 include(joinpath("clustering","exact_kmedoids.jl"))
 include(joinpath("clustering","extreme_vals.jl"))
 include(joinpath("clustering","attribute_weighting.jl"))
+include(joinpath("clustering","intraperiod_segmentation.jl"))
+include(joinpath("clustering","other_clust.jl"))

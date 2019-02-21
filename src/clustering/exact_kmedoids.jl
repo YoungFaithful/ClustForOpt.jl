@@ -9,12 +9,12 @@ end
 
 
 """  
-function kmedoids_exact(
-   data::Array{Float64},
-   nclust::Int,
-   _dist::SemiMetric = SqEuclidean(),
-   env::Any;
-   )
+    kmedoids_exact(
+     data::Array{Float64},
+     nclust::Int,
+     _dist::SemiMetric = SqEuclidean(),
+     env::Any;
+     )
    results = kmedoids_exact()
    data { HOURS,DAYS }
 Performs the exact kmedoids algorithm as in Kotzur et al, 2017
@@ -35,7 +35,7 @@ d_mat=pairwise(_dist,data)
 
 
 # create jump model
-m = Model(solver=GurobiSolver(env)) # GurobiSolver(env,OutputFlag=0) 
+m = Model(optimizer=GurobiSolver(env)) # GurobiSolver(env,OutputFlag=0) 
 @variable(m,z[1:N_i,1:N_i],Bin)
 @variable(m,y[1:N_i],Bin)
 @objective(m,Min,sum(d_mat[i,j]*z[i,j] for i=1:N_i, j=1:N_i))
