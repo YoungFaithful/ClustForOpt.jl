@@ -203,8 +203,7 @@ function run_clust_predefined_centroid(
     data_norm::ClustDataMerged,
     n_clust::Int,
     iterations::Int;
-    k_ids::Array{Int64,1}=Array{Int64,1}()
-    )
+    k_ids::Array{Int64,1}=Array{Int64,1}())
     centers,weights,clustids,cost,iter =[],[],[],0,0
     # if only one cluster
     if n_clust == length(unique(k_ids))
@@ -221,9 +220,7 @@ function run_clust_predefined_centroid(
     else
         throw(@error "mismatch of intendet clusters $n_clust and k_ids provided with $(length(unique(k_ids)))")
     end
-
     weights = calc_weights(clustids,n_clust)
-
     return centers,weights,clustids,cost,iter
 end
 
@@ -240,11 +237,7 @@ function run_clust_predefined_medoid(data_norm::ClustDataMerged,
   end
 
 """
-function run_clust_kmeans_centroid(
-    data_norm::ClustDataMerged,
-    n_clust::Int,
-    iterations::Int
-    )
+    run_clust_kmeans_centroid(data_norm::ClustDataMerged,n_clust::Int,iterations::Int)
 """
 function run_clust_kmeans_centroid(
     data_norm::ClustDataMerged,

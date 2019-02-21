@@ -33,6 +33,10 @@ function run_two_step_clust(data::ClustData;
   return run_clust(data;method="predefined",representation=representation,n_init=1,n_clust=Int64(n_clust_1*n_clust_2),k_ids=new_k_ids,n_seg=n_seg,get_all_clust_results=get_all_clust_results)
 end
 
+"""
+    run_minmax_clust(data::ClustData; norm_op::String="zscore", norm_scope::String="full", method::String="kmeans", representation::String="centroid", n_clust_1::Int=5, n_clust_2::Int=3, n_seg::Int=data.T, n_init::Int=100, iterations::Int=300, attribute_weights::Dict{String,Float64}=Dict{String,Float64}(), min::Array{String,1}=Array{String,1}(), max::Array{String,1}=Array{String,1}(),, get_all_clust_results::Bool=false, kwargs...)
+Choose the min or max of a certain attribute to represent this attribute in this period instead of the centroid or so
+"""
 function run_minmax_clust(data::ClustData;
                             norm_op::String="zscore",
                             norm_scope::String="full",
@@ -65,6 +69,10 @@ function run_minmax_clust(data::ClustData;
   return clust_result
 end
 
+"""
+    run_pure_clust(data::ClustData; norm_op::String="zscore", norm_scope::String="full", method::String="kmeans", representation::String="centroid", n_clust_1::Int=5, n_clust_2::Int=3, n_seg::Int=data.T, n_init::Int=100, iterations::Int=300, attribute_weights::Dict{String,Float64}=Dict{String,Float64}(), clust::Array{String,1}=Array{String,1}(), get_all_clust_results::Bool=false, kwargs...)
+Replace the original timeseries of the attributes in clust with their clustered value
+"""
 function run_pure_clust(data::ClustData;
                             norm_op::String="zscore",
                             norm_scope::String="full",
@@ -93,6 +101,10 @@ function run_pure_clust(data::ClustData;
   return ClustData(data.region, data.years, data.K, data.T, mod_data, data.weights, data.deltas, data.k_ids), clust_result
 end
 
+"""
+    run_darkperiod_clust(data::ClustData, ev_arr::Array{SimpleExtremeValueDescr,1}; norm_op::String="zscore", norm_scope::String="full", method::String="kmeans", representation::String="centroid", n_clust_1::Int=5, n_clust_2::Int=3, n_seg::Int=data.T, n_init::Int=100, iterations::Int=300, attribute_weights::Dict{String,Float64}=Dict{String,Float64}(), get_all_clust_results::Bool=false, kwargs...)
+Choose Seasonal extremes based on the provided Simple Extreme Value Descriptions
+"""
 function run_darkperiod_clust(data::ClustData,
                                 ev_arr::Array{SimpleExtremeValueDescr,1};
                                 norm_op::String="zscore",
