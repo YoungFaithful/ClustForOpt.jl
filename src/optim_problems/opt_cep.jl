@@ -188,7 +188,7 @@ function setup_opt_cep_generation_el!(cep::OptModelCEP,
     @constraint(cep.model, [impact=set["impact"], tech=set["tech_generation"]], cep.model[:COST]["cap_fix",impact,tech]==sum(cep.model[:CAP][tech,"new",node] *(find_cost_in_df(cap_costs,nodes,tech,node,impact)+find_cost_in_df(fix_costs,nodes,tech,node,impact)) for node=set["nodes"]))
 
     # Limit the generation of dispathables to the infrastructing capacity of dispachable power plants
-    push!(cep.info,"0 ≤ GEN['el',tech, t, k, node] ≤ techΣ_{infrastruct} CAP[tech,infrastruct,node] ∀ node, tech_generation{dispatchable}, t, k")
+    push!(cep.info,"0 ≤ GEN['el',tech, t, k, node] ≤ Σ_{infrastruct} CAP[tech,infrastruct,node] ∀ node, tech_generation{dispatchable}, t, k")
     # Limit the generation of dispathables to the infrastructing capacity of non-dispachable power plants
     push!(cep.info,"0 ≤ GEN['el',tech, t, k, node] ≤ Σ_{infrastruct}CAP[tech,infrastruct,node]*ts[tech-node,t,k] ∀ node, tech_generation{non_dispatchable}, t, k")
     for tech in set["tech_generation"]
@@ -254,7 +254,7 @@ function setup_opt_cep_storage!(cep::OptModelCEP,
     push!(cep.info,"GEN['el',tech, t, k, node] =0 ∀ node, tech_storage_e, t, k")
     @constraint(cep.model, [node=set["nodes"], tech=set["tech_storage_e"], t=set["time_T"], k=set["time_K"]], cep.model[:GEN]["el",tech,t,k,node]==0)
     # Connect the previous storage level and the integral of the flows with the new storage level
-    push!(cep.info,"INTRASTOR['el',tech, t, k, node] = INTRASTOR['el',tech, t-1, k, node] η[tech]^(ts_deltas[t,k]/732h) + ts_deltas[t,k] ⋅ (-1) ⋅ (GEN['el',tech_{in}, t, k, node] ⋅ η[tech_{in}] + GEN['el',tech_{out}, t, k, node] / η[tech_{out}])∀ node, tech_storage_e, t, k")
+    push!(cep.info,"INTRASTOR['el',tech, t, k, node] = INTRASTOR['el',tech, t-1, k, node] η[tech]^(ts_deltas[t,k]/732h) + ts_deltas[t,k] ⋅ (-1) ⋅ (GEN['el',tech_{in}, t, k, node] ⋅ η[tech_{in}] + GEN['el',tech_{out}, t, k, node] / η[tech_{out}]) ∀ node, tech_storage_e, t, k")
     @constraint(cep.model, [node=set["nodes"], tech=set["tech_storage_e"], t in set["time_T"], k=set["time_K"]], cep.model[:INTRASTOR]["el",tech,t,k,node]==cep.model[:INTRASTOR]["el",tech,t-1,k,node]*find_val_in_df(techs,:tech,tech,"eff")^(ts_deltas[t,k]/732) - ts_deltas[t,k] * (cep.model[:GEN]["el",split(tech,"_")[1]*"_in",t,k,node] * find_val_in_df(techs,:tech,split(tech,"_")[1]*"_in","eff") + cep.model[:GEN]["el",split(tech,"_")[1]*"_out",t,k,node] / find_val_in_df(techs,:tech,split(tech,"_")[1]*"_out","eff")))
     # Sum the INTRASTORGEN up to calculate the actual GEN of the technology
     #push!(cep.info,"GEN['el',tech, t, k, node] = INTRASTORGEN['el','discharge',tech, t, k, node] - INTRASTORGEN['el','charge',tech, t, k, node] ∀ node, tech_storage_e, t, k")
