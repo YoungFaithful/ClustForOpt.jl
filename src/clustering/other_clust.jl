@@ -115,6 +115,7 @@ function run_darkperiod_clust(data::ClustData,
                                 n_clust_dark::Int=5,
                                 n_seg::Int=data.T,
                                 n_init::Int=100,
+                                n_dark_init::Int=100,
                                 iterations::Int=300,
                                 attribute_weights::Dict{String,Float64}=Dict{String,Float64}(),
                                 get_all_clust_results::Bool=false,
@@ -130,7 +131,7 @@ function run_darkperiod_clust(data::ClustData,
             k_ids[findall(extr_val.k_ids.!=0)].= 1
             extr_result=ClustData(extr.region, extr.years, extr.K, extr.T, extr.data, extr.weights, extr.deltas, k_ids)
         else
-            extr_result=run_clust(extr_val;norm_op=norm_op,norm_scope=norm_scope,method=method,representation=representation,n_clust=n_clust_dark,n_init=Int64(round(n_init*extr_val.K/data.K)),iterations=iterations,attribute_weights=attribute_weights,kwargs...).best_results
+            extr_result=run_clust(extr_val;norm_op=norm_op,norm_scope=norm_scope,method=method,representation=representation,n_clust=n_clust_dark,n_init=n_dark_init,iterations=iterations,attribute_weights=attribute_weights,kwargs...).best_results
         end
         push!(extr_results,extr_result)
         data=data_mod

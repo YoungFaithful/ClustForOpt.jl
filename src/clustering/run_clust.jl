@@ -214,7 +214,7 @@ function run_clust_predefined_centroid(
         end
         clustids = k_ids
         centers = undo_z_normalize(centers_norm,data_norm.mean,data_norm.sdv;idx=clustids) # need to provide idx in case that sequence-based normalization is used
-        cost = sum(pairwise(SqEuclidean(),centers_norm,data_norm.data)) #same as sum((seq_norm-repmat(mean(seq_norm,2),1,size(seq,2))).^2)
+        cost = sum(pairwise(SqEuclidean(),centers_norm,data_norm.data; dims=2)) #same as sum((seq_norm-repmat(mean(seq_norm,2),1,size(seq,2))).^2)
         iter = 1
     # kmeans() in Clustering.jl is implemented for k>=2
     else
@@ -250,7 +250,7 @@ function run_clust_kmeans_centroid(
         centers_norm = mean(data_norm.data,dims=2) # should be 0 due to normalization
         clustids = ones(Int,size(data_norm.data,2))
         centers = undo_z_normalize(centers_norm,data_norm.mean,data_norm.sdv;idx=clustids) # need to provide idx in case that sequence-based normalization is used
-        cost = sum(pairwise(SqEuclidean(),centers_norm,data_norm.data)) #same as sum((seq_norm-repmat(mean(seq_norm,2),1,size(seq,2))).^2)
+        cost = sum(pairwise(SqEuclidean(),centers_norm,data_norm.data; dims=2)) #same as sum((seq_norm-repmat(mean(seq_norm,2),1,size(seq,2))).^2)
         iter = 1
     # kmeans() in Clustering.jl is implemented for k>=2
     elseif n_clust==data_norm.K
@@ -292,7 +292,7 @@ function run_clust_kmeans_medoid(
         clustids = ones(Int,size(data_norm.data,2))
         centers_norm = calc_medoids(data_norm.data,clustids)
         centers = undo_z_normalize(centers_norm,data_norm.mean,data_norm.sdv;idx=clustids) # need to provide idx in case that sequence-based normalization is used
-        cost = sum(pairwise(SqEuclidean(),centers_norm,data_norm.data)) #same as sum((seq_norm-repmat(mean(seq_norm,2),1,size(seq,2))).^2)
+        cost = sum(pairwise(SqEuclidean(),centers_norm,data_norm.data; dims=2)) #same as sum((seq_norm-repmat(mean(seq_norm,2),1,size(seq,2))).^2)
         iter = 1
     # kmeans() in Clustering.jl is implemented for k>=2
     elseif n_clust==data_norm.K
@@ -332,7 +332,7 @@ function run_clust_kmedoids_medoid(
 
     # TODO: optional in future: pass distance metric as kwargs
     dist = SqEuclidean()
-    d_mat=pairwise(dist,data_norm.data)
+    d_mat=pairwise(dist,data_norm.data; dims=2)
     results = kmedoids(d_mat,n_clust;tol=1e-6,maxiter=iterations)
     clustids = results.assignments
     centers_norm = data_norm.data[:,results.medoids]
@@ -393,7 +393,7 @@ function run_clust_hierarchical(
     _dist::SemiMetric = SqEuclidean()
     )
 
-    d_mat=pairwise(_dist,data)
+    d_mat=pairwise(_dist,data; dims=2)
     r=hclust(d_mat,linkage=:ward_presquared)
     clustids = cutree(r,k=n_clust)
     weights = calc_weights(clustids,n_clust)

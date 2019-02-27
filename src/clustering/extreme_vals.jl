@@ -86,17 +86,15 @@ function simple_extr_val_ident(data::ClustData,
                                extremum::String="max",
                                peak_def::String="absolute",
                                periods::Int64=1)
-  # TODO: Possibly add option to find maximum among all series of a data_type for a certain node
   for name in keys(data.data)
     attr=split(name,"-")[1]
     if name==data_type
       return simple_extr_val_ident(data.data[data_type]; extremum=extremum, peak_def=peak_def, periods=periods)
     elseif attr==data_type
       return simple_extr_val_ident(data.data[name]; extremum=extremum, peak_def=peak_def, periods=periods)
-    else
-      throw(@error("the provided data type - "*data_type*" - is not contained in data"))
     end
   end
+  return throw(@error("the provided data type - "*data_type*" - is not contained in data"))
 end
 
 """

@@ -16,6 +16,8 @@ module ClustForOpt
 
    export run_opt,
           run_clust,
+          run_darkperiod_clust,
+          run_pure_clust,
           get_sup_kw_args,
           InputData,
           FullInputData,
@@ -62,5 +64,5 @@ module ClustForOpt
   include(joinpath("clustering","extreme_vals.jl"))
   include(joinpath("clustering","attribute_weighting.jl"))
   include(joinpath("clustering","intraperiod_segmentation.jl"))
-
+  include(joinpath("clustering","other_clust.jl"))
 end # module ClustForOpt
