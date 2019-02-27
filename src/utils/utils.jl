@@ -443,17 +443,6 @@ function get_cep_variable_set(scenario::Scenario,
 end
 
 """
-    get_cep_variable_set(scenario::Scenario,var_name::String,num_index_set::Int)
-Get the variable set from the specific Scenario by indicating the var_name e.g. "COST" and the num_index_set like 1
-"""
-function get_cep_variable_set(scenario::Scenario,
-                              var_name::String,
-                              num_index_set::Int
-                              )
-    return  get_cep_variable_set(scenario.opt_res.variables[var_name], num_index_set)
-end
-
-"""
     get_cep_design_variables(opt_result::OptResult; capacity_factors::Dict{String,Number}=Dict{String,Number}())
 Returns all design variables in this opt_result matching the type "dv"
 Additionally you can add capacity factors, which scale the design variables by multiplying it with the value in the Dict
