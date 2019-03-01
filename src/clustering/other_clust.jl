@@ -98,7 +98,7 @@ function run_pure_clust(data::ClustData;
       end
     end
   end
-  return ClustData(data.region, data.years, data.K, data.T, mod_data, data.weights, data.deltas, data.k_ids), clust_result
+  return ClustResultSimple(ClustData(data.region, data.years, data.K, data.T, mod_data, data.weights, data.deltas, data.k_ids), clust_result.clust_config)
 end
 
 """
@@ -139,5 +139,5 @@ function run_darkperiod_clust(data::ClustData,
     # run clustering
     data_res = run_clust(data;norm_op=norm_op,norm_scope=norm_scope,method=method,representation=representation,n_clust=n_clust,n_init=n_init,iterations=iterations,attribute_weights=attribute_weights) # default
     # representation modification
-    return representation_modification(extr_results, data_res.best_results), data_res
+    return ClustResultSimple(representation_modification(extr_results, data_res.best_results), data_res.clust_config)
 end
