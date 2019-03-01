@@ -88,7 +88,7 @@ function run_pure_clust(data::ClustData;
                             kwargs...)
   clust_result=run_clust(data;norm_op=norm_op,norm_scope=norm_scope,method=method,representation=representation,n_clust=n_clust,n_init=n_init,iterations=iterations,attribute_weights=attribute_weights)
   clust_data=clust_result.best_results
-  mod_data=data.data
+  mod_data=deepcopy(data.data)
   for i in 1:clust_data.K
     index=findall(clust_data.k_ids.==i)
     for name in keys(mod_data)
