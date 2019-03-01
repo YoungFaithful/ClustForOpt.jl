@@ -367,6 +367,7 @@ function ClustDataMerged(region::String,
                        data_type::Array{String},
                        weights::Array{Float64},
                        k_ids::Array{Int64,1};
+                       deltas::Array{Float64}=ones(T,K),
                        mean::Dict{String,Array}=Dict{String,Array}(),
                        sdv::Dict{String,Array}=Dict{String,Array}()
                        )
@@ -377,7 +378,6 @@ function ClustDataMerged(region::String,
      sdv[dt]=ones(T)
    end
  end
- deltas=ones(T,K)
  ClustDataMerged(region,years,K,T,data,data_type,weights,mean,sdv,deltas,k_ids)
 end
 
