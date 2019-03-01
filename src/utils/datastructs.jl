@@ -65,6 +65,13 @@ struct ClustResultBest <: ClustResult
  clust_config::Dict{String,Any}
 end
 
+"ClustResultSimple"
+struct ClustResultSimple <: ClustResult
+ best_results::ClustData
+ #TODO: clust_data::ClustData
+ clust_config::Dict{String,Any}
+end
+
 "SimpleExtremeValueDescr"
 struct SimpleExtremeValueDescr
    data_type::String
@@ -150,6 +157,7 @@ struct OptResult
  model_set::Dict{String,Array}
  model_info::Array{String}
  opt_config::Dict{String,Any}
+ #TODO: opt_info::Dict{String,Any}
 end
 
 """
@@ -173,7 +181,7 @@ struct OptDataCEP <: OptData
 end
 
 """
-     Scenario
+     Scenario{descriptor::String,clust_res::ClustResult,opt_res::OptResult}
 -`descriptor::String`
 -`clust_res::ClustResult`
 -`opt_res::OptResult`
