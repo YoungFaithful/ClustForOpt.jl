@@ -656,3 +656,32 @@ Return an array for the time series of costs in all the impact dimensions and th
 function get_cost_series(cep_data::OptDataCEP,scenario::Scenario)
   return get_cost_series(cep_data.nodes,cep_data.var_costs,scenario.clust_res, scenario.opt_res.model_set,scenario.opt_res.variables)
 end
+
+"""
+    get_met_cap_limit(cep::OptModelCEP, opt_data::OptDataCEP, variables::Dict{String,OptVariable})
+Return the technologies that meet the capacity limit
+"""
+function get_met_cap_limit(cep::OptModelCEP, opt_data::OptDataCEP, variables::Dict{String,OptVariable})
+  ## DATA ##
+  # Set
+  set=cep.set
+  # nodes with limits
+  nodes=opt_data.nodes
+
+  met_cap_limit=Array{String,1}()
+  for tech in set["tech"]
+    for node in set["nodes"]
+      #Check if the limit is reached in any capacity at any node
+      if sum(get_cep_variable_value(variables["CAP"],[tech,:,node])) == find_val_in_df(nodes,:nodes,node,:infrastruct,"lim",tech)
+        #Add this technology and node to the met_cap_limit Array
+        push!(met_cap_limit,tech*"-"*node)
+      end
+    end
+  end
+  # If the array isn't empty throw an error (as limits are only for numerical speedup)
+  if !isempty(met_cap_limit)
+    #TODO change to warning
+    throw( @error "Limit is reached for techs $met_cap_limit")
+  end
+  return met_cap_limit
+end

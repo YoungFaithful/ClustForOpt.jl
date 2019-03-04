@@ -571,6 +571,7 @@ function solve_opt_cep(cep::OptModelCEP,
     variables["TRANS"]=OptVariable(cep,:TRANS,"dv")
     variables["FLOW"]=OptVariable(cep,:FLOW,"ov")
   end
+  get_met_cap_limit(cep, opt_data, variables)
   currency=variables["COST"].axes[2][1]
   if lost_load==0 && lost_emission==0
     opt_config["print_flag"] && @info("Solved Scenario $(opt_config["descriptor"]): "*String(status)*" min COST: $(round(objective,sigdigits=4)) [$currency] ⇨ $(round(objective/total_demand,sigdigits=4)) [$currency per MWh] s.t. Emissions ≤ $(opt_config["co2_limit"]) [kg-CO₂-eq. per MWh]")
