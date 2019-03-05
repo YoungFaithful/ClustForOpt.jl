@@ -134,7 +134,8 @@ Constructor for OptVariable taking JuMP Array and type (ov-operational variable 
 """
 function OptVariable(cep::OptModelCEP,
                      variable::Symbol,
-                     type::String)
+                     type::String;
+                     round_digits::Int64=9)
   jumparray=value.(cep.model[variable])
   axes_names=Array{String,1}()
   for axe in jumparray.axes
@@ -145,7 +146,7 @@ function OptVariable(cep::OptModelCEP,
       end
     end
   end
-  OptVariable(jumparray.data,axes_names,jumparray.axes,type)
+  OptVariable(round.(jumparray.data;digits=round_digits),axes_names,jumparray.axes,type)
 end
 
 "OptResult"

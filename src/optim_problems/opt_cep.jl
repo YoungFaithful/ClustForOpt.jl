@@ -48,15 +48,11 @@ setting up the basic core elements for a CEP-model
 function setup_opt_cep_basic(ts_data::ClustData,
                             opt_data::OptDataCEP,
                             opt_config::Dict{String,Any},
-                            optimizer::DataType;
-                            print_level::Int64=0)
+                            optimizer::DataType,
+                            optimizer_config::Dict{Symbol,Any})
    ## MODEL CEP ##
    # Initialize model
-   if string.(optimizer)=="Gurobi.Optimizer"
-     model = JuMP.Model(with_optimizer(optimizer,OutputFlag=print_level))
-   else
-     model = JuMP.Model(with_optimizer(optimizer))
-   end
+   model =  JuMP.Model(with_optimizer(optimizer;optimizer_config...))
    # Initialize info
    info=[opt_config["descriptor"]]
    # Setup set
@@ -572,6 +568,7 @@ function solve_opt_cep(cep::OptModelCEP,
     variables["FLOW"]=OptVariable(cep,:FLOW,"ov")
   end
   get_met_cap_limit(cep, opt_data, variables)
+  round_variables!(variables, opt_config["round_digits"])
   currency=variables["COST"].axes[2][1]
   if lost_load==0 && lost_emission==0
     opt_config["print_flag"] && @info("Solved Scenario $(opt_config["descriptor"]): "*String(status)*" min COST: $(round(objective,sigdigits=4)) [$currency] ⇨ $(round(objective/total_demand,sigdigits=4)) [$currency per MWh] s.t. Emissions ≤ $(opt_config["co2_limit"]) [kg-CO₂-eq. per MWh]")

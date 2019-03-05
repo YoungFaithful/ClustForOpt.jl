@@ -9,7 +9,7 @@ function run_opt(ts_data::ClustData,
                     )
   #Check the consistency of the data provided
   check_opt_data_cep(opt_data)
-  cep=setup_opt_cep_basic(ts_data, opt_data, opt_config, optimizer; print_level=(if opt_config["print_flag"] opt_config["print_level"] else 0 end))
+  cep=setup_opt_cep_basic(ts_data, opt_data, opt_config, optimizer, opt_config["optimizer_config"])
   setup_opt_cep_basic_variables!(cep, ts_data, opt_data)
   if opt_config["lost_load_cost"]["el"]!=Inf
     setup_opt_cep_lost_load!(cep, ts_data, opt_data)
@@ -97,7 +97,8 @@ function run_opt(ts_data::ClustData,
                  storage::String="none",
                  transmission::Bool=false,
                  print_flag::Bool=true,
-                 print_level::Int64=0)
+                 optimizer_config::Dict{Symbol,Any}=Dict{Symbol,Any}(),
+                 round_digits::Int64=9)
    # Activated seasonal or simple storage corresponds with storage
    if storage=="seasonal"
        storage=true
@@ -119,7 +120,7 @@ function run_opt(ts_data::ClustData,
   lost_emission_cost=Dict{String,Number}("CO2"=>lost_CO2_emission_cost)
 
   #Setup the opt_config file based on the data input and
-  opt_config=set_opt_config_cep(opt_data; descriptor=descriptor, co2_limit=co2_limit, lost_load_cost=lost_load_cost, lost_emission_cost=lost_emission_cost, existing_infrastructure=existing_infrastructure, limit_infrastructure=limit_infrastructure, storage_e=storage, storage_in=storage, storage_out=storage, seasonalstorage=seasonalstorage, transmission=transmission, print_flag=print_flag, print_level=print_level)
+  opt_config=set_opt_config_cep(opt_data; descriptor=descriptor, co2_limit=co2_limit, lost_load_cost=lost_load_cost, lost_emission_cost=lost_emission_cost, existing_infrastructure=existing_infrastructure, limit_infrastructure=limit_infrastructure, storage_e=storage, storage_in=storage, storage_out=storage, seasonalstorage=seasonalstorage, transmission=transmission, print_flag=print_flag, optimizer_config=optimizer_config, round_digits=round_digits)
   #Run the optimization problem
   run_opt(ts_data, opt_data, opt_config, optimizer)
 end # run_opt

@@ -1,30 +1,5 @@
 """
     load_timeseries_data(application::String, region::String, T-#Segments,
-years::Int64=# year to be selected for the time series, att::Array{String,1}=# attributes to be loaded)
-Loading from .csv files in a the folder ../ClustForOpt/data/{application}/{region}/TS
-Loads all attributes if the `att`-Array is empty or only the ones specified in it
-Timestamp-column has to be called Timestamp
-Other columns have to be called with the location/node name
-for application:
-- `DAM`: Day Ahead Market
-- `CEP`: Capacity Expansion Problem
-and regions:
-- `"GER_1"`: Germany 1 node
-- `"GER_18"`: Germany 18 nodes
-- `"CA_1"`: California 1 node
-- `"CA_14"`: California 14 nodes
-- `"TX_1"`: Texas 1 node
-"""
-function load_timeseries_data( application::String,
-                              region::String;
-                              T::Int64=24,
-                              years::Int64=2016,
-                              att::Array{String,1}=Array{String,1}())
-    return load_timeseries_data(application, region; T=T, years=[years], att=att)
-end
-
-"""
-    load_timeseries_data(application::String, region::String, T-#Segments,
 years::Array{Int64,1}=# years to be selected for the time series, att::Array{String,1}=# attributes to be loaded)
 Loading from .csv files in a the folder ../ClustForOpt/data/{application}/{region}/TS
 Loads all attributes if the `att`-Array is empty or only the ones specified in it

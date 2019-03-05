@@ -685,3 +685,14 @@ function get_met_cap_limit(cep::OptModelCEP, opt_data::OptDataCEP, variables::Di
   end
   return met_cap_limit
 end
+
+"""
+    round_variables!(variables::Dict{String,OptVariable},round_digits::Int64)
+Round the .data of all variables to the digit `round_digits`
+"""
+function round_variables!(variables::Dict{String,OptVariable},
+                          round_digits::Int64)
+  for (k,v) in variables
+    variables[k]=OptVariable(round.(v.data; digits=round_digits),v.axes_names,v.axes,v.type)
+  end
+end
