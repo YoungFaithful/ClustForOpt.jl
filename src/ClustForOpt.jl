@@ -7,7 +7,7 @@
  #####################
 module ClustForOpt
   using Reexport
-  @reexport using StatsKit
+  using StatsKit
   @reexport using JLD2
   @reexport using FileIO
   using JuMP
@@ -46,6 +46,7 @@ module ClustForOpt
           find_medoids,
           resize_medoids,
           load_timeseries_data,
+          combine_timeseries_weather_data,
           load_cep_data,
           get_cep_variable_value,
           get_cep_variable_set,

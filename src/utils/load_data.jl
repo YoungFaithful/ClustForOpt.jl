@@ -1,7 +1,8 @@
 """
     load_timeseries_data(application::String, region::String, T-#Segments,
-years::Array{Int64,1}=# years to be selected for the time series)
+years::Int64=# year to be selected for the time series, att::Array{String,1}=# attributes to be loaded)
 Loading from .csv files in a the folder ../ClustForOpt/data/{application}/{region}/TS
+Loads all attributes if the `att`-Array is empty or only the ones specified in it
 Timestamp-column has to be called Timestamp
 Other columns have to be called with the location/node name
 for application:
@@ -17,7 +18,33 @@ and regions:
 function load_timeseries_data( application::String,
                               region::String;
                               T::Int64=24,
-                              years::Array{Int64,1}=[2016])
+                              years::Int64=2016,
+                              att::Array{String,1}=Array{String,1}())
+    return load_timeseries_data(application, region; T=T, years=[years], att=att)
+end
+
+"""
+    load_timeseries_data(application::String, region::String, T-#Segments,
+years::Array{Int64,1}=# years to be selected for the time series, att::Array{String,1}=# attributes to be loaded)
+Loading from .csv files in a the folder ../ClustForOpt/data/{application}/{region}/TS
+Loads all attributes if the `att`-Array is empty or only the ones specified in it
+Timestamp-column has to be called Timestamp
+Other columns have to be called with the location/node name
+for application:
+- `DAM`: Day Ahead Market
+- `CEP`: Capacity Expansion Problem
+and regions:
+- `"GER_1"`: Germany 1 node
+- `"GER_18"`: Germany 18 nodes
+- `"CA_1"`: California 1 node
+- `"CA_14"`: California 14 nodes
+- `"TX_1"`: Texas 1 node
+"""
+function load_timeseries_data( application::String,
+                              region::String;
+                              T::Int64=24,
+                              years::Array{Int64,1}=[2016],
+                              att::Array{String,1}=Array{String,1}())
   dt = Dict{String,Array}()
   num=0
   K=0
@@ -26,10 +53,13 @@ function load_timeseries_data( application::String,
   #Loop through all available files
   for fulldataname in readdir(data_path)
       dataname=split(fulldataname,".")[1]
-      #Load the data
-      data_df=CSV.read(joinpath(data_path,fulldataname);allowmissing=:none)
-      # Add it to the dictionary
-      K=add_timeseries_data!(dt,dataname, data_df; K=K, T=T, years=years)
+      #
+      if isempty(att) || dataname in att
+          #Load the data
+          data_df=CSV.read(joinpath(data_path,fulldataname);allowmissing=:none)
+          # Add it to the dictionary
+          K=add_timeseries_data!(dt,dataname, data_df; K=K, T=T, years=years)
+      end
   end
   # Store the data
   ts_input_data =  ClustData(FullInputData(region, years, num, dt),K,T)
@@ -61,6 +91,34 @@ function add_timeseries_data!(dt::Dict{String,Array},
         end
     end
     return K
+end
+
+"""
+        combine_timeseries_weather_data(ts::ClustData,ts_weather::ClustData)
+-`ts` is the shorter timeseries with e.g. the demand
+-`ts_weather` is the longer timeseries with the weather information
+The `ts`-timeseries is repeated to match the number of periods of the longer `ts_weather`-timeseries.
+If the number of periods of the `ts_weather` data isn't a multiple of the `ts`-timeseries, the necessary number of the `ts`-timeseries periods 1 to x are attached to the end of the new combined timeseries.
+"""
+function combine_timeseries_weather_data(ts::ClustData,
+                                        ts_weather::ClustData)
+    ts.T==ts_weather.T || throw(@error "The number of timesteps per period is not the same: `ts.T=$(ts.T)≢$(ts_weather.T)=ts_weather.T`")
+    ts.K<=ts_weather.K || throw(@error "The number of timesteps in the `ts`-timeseries isn't shorter or equal to the ones in the `ts_weather`-timeseries.")
+    ts_weather.K%ts.K==0 || @warn "The number of periods of the `ts_weather` data isn't a multiple of the other `ts`-timeseries: periods 1 to $(ts_weather.K%ts.K) are attached to the end of the new combined timeseries."
+    ts_data=deepcopy(ts_weather.data)
+    ts_mean=deepcopy(ts_weather.mean)
+    ts_sdv=deepcopy(ts_weather.sdv)
+    for (k,v) in ts.data
+        ts_data[k]=repeat(v, 1, ceil(Int,ts_weather.K/ts.K))[:,1:ts_weather.K]
+    end
+    for (k,v) in ts.mean
+        ts_mean[k]=v
+    end
+    for (k,v) in ts.sdv
+        ts_sdv[k]=v
+    end
+
+    return ClustData(ts.region, ts_weather.years, ts_weather.K, ts_weather.T, ts_data, ts_weather.weights, ts_mean, ts_sdv, ts_weather.deltas, ts_weather.k_ids)
 end
 
 """
