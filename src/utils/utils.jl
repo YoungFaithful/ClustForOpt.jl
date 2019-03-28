@@ -615,7 +615,7 @@ end
     get_met_cap_limit(cep::OptModelCEP, opt_data::OptDataCEP, variables::Dict{String,OptVariable})
 Return the technologies that meet the capacity limit
 """
-function get_met_cap_limit(cep::OptModelCEP, opt_data::OptDataCEP, variables::Dict{String,OptVariable})
+function get_met_cap_limit(cep::OptModelCEP, opt_data::OptDataCEP, variables::Dict{String,Any})
   ## DATA ##
   # Set
   set=cep.set

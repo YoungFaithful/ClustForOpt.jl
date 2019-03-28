@@ -115,12 +115,12 @@ function load_cep_data_techs(data_path::String)
         #lifetime::Number
         lifetime=tab[(:tech,tech),:lifetime][1]
         #financial_lifetime::Number
-        financial_lifetime=tab[(:tech,tech),:lifetime][1]
+        financial_lifetime=tab[(:tech,tech),:financial_lifetime][1]
         #discount_rate::Number
         discount_rate=tab[(:tech,tech),:discount_rate][1]
         # The time for the cap-investion to be paid back is the minimum of the max. financial lifetime and the lifetime of the product (If it's just good for 5 years, you'll have to rebuy one after 5 years)
         # annuityfactor = (1+i)^y*i/((1+i)^y-1) , i-discount_rate and y-payoff years
-        annuityfactor=round((1+discount_rate)^(min(financial_lifetime,lifetime)) *discount_rate/ ((1+discount_rate) ^(min(financial_lifetime,lifetime))-1); sigdigits=4)
+        annuityfactor=round((1+discount_rate)^(min(financial_lifetime,lifetime)) *discount_rate/ ((1+discount_rate) ^(min(financial_lifetime,lifetime))-1); sigdigits=9)
         # Add single data entry
         techs[tech]=OptDataCEPTech(categ,sector,eff,time_series,lifetime,financial_lifetime,discount_rate,annuityfactor)
     end
@@ -225,9 +225,9 @@ function load_cep_data_costs(data_path::String, techs::OptVariable, nodes::OptVa
                         total_cap_cost=tab[(:tech,tech)][(:location,cap_location)][(:account,"cap")][(:year,year),Symbol(impact)][1]
                         #First impact shall always be currency - Currency of capacity cost is annulized with annuityfactor
                         if impact==axes(costs,"impact")[1]
-                            annulized_cap_cost=round(total_cap_cost*techs[tech].annuityfactor;sigdigits=4)
+                            annulized_cap_cost=round(total_cap_cost*techs[tech].annuityfactor;sigdigits=9)
                         else #Emissions of capacity cost are annulized with total lifetime
-                            annulized_cap_cost=round(total_cap_cost/techs[tech].lifetime;sigdigits=4)
+                            annulized_cap_cost=round(total_cap_cost/techs[tech].lifetime;sigdigits=9)
                         end
                         fix_location=get_location_data(nodes,tab,tech,node,"fix")
                         fix_cost=tab[(:tech,tech)][(:location,fix_location)][(:account,"fix")][(:year,year),Symbol(impact)][1]
