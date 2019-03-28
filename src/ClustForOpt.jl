@@ -54,8 +54,8 @@ module ClustForOpt
           get_cep_design_variables,
           get_total_demand
 
-
   include(joinpath("utils","datastructs.jl"))
+  include(joinpath("utils","optvariable.jl"))
   include(joinpath("utils","utils.jl"))
   include(joinpath("utils","load_data.jl"))
   include(joinpath("optim_problems","run_opt.jl"))

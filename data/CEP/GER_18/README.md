@@ -34,9 +34,7 @@ Germany 18 (dena) nodes, with existing infrastructure of year 2015, no nuclear
 
 # Other #
 - trans efficiency is 0.9995 per km
-- length in km
-length not correct yet
-demand split up needs improvement
+- length in kmt
 - storage: efficiencies are in efficiency per month
 - storage hydrogen: referenced in MWh with lower calorific value 33.32 kWh/kg "DIN 51850: Brennwerte und Heizwerte gasförmiger Brennstoffe" 1980
 - h2_in, h2_out: Sunfire process

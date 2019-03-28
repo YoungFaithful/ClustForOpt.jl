@@ -1,4 +1,4 @@
-nodes,region,infrastruct,pv,wind,coal,oil,nuc,gas,biogas,biomass,ror_large,ror_small,geo,bat_e,bat_in,bat_out,php_e,php_in,php_out,h2_e,h2_in,h2_out,trans
+node,region,infrastruct,pv,wind,coal,oil,nuc,gas,biogas,biomass,ror_large,ror_small,geo,bat_e,bat_in,bat_out,php_e,php_in,php_out,h2_e,h2_in,h2_out,trans
 CCT,CA,ex,37,240,0,371,0,9364,12,11,0,0,0,6,0,0,0,1,1,0,0,0,0
 CVA,CA,ex,206,1055,0,89,0,4962,28,131,2902,170.04,0,2,28,28,0,0,0,0,0,0,0
 ECA,CA,ex,5,0,0,0,0,0,0,0,112,21.3,107,0,4,4,0,0,0,0,0,0,0

@@ -303,6 +303,7 @@ function find_val_in_df(df::DataFrame,
                     reference::String,
                     value_to_return::Symbol
                     )
+                    @warn "find_val_in_df deprecated"
     return df[findfirst(df[column_of_reference].==reference),value_to_return]
 end
 
@@ -315,62 +316,30 @@ function find_val_in_df(df::DataFrame,
                     reference::String,
                     value_to_return::String
                     )
+                    @warn "find_val_in_df deprecated"
     return find_val_in_df(df,column_of_reference,reference,Symbol(value_to_return))
 end
 
-"""
-    find_val_in_df(df::DataFrame,column_of_reference1::Symbol,reference1::String, column_of_reference2::Symbol,reference2::String, value_to_return::Symbol)
-Take DataFrame(df) Look in Column1 and Column2 (column_of_reference1 and 2) for the reference value (reference1 and 2) and return in same row where both values match in column (value_to_return)
-"""
-function find_val_in_df(df::DataFrame,
-                        column_of_reference1::Symbol,
-                        reference1::String,
-                        column_of_reference2::Symbol,
-                        reference2::String,
-                        value_to_return::Symbol)
-    return df[findfirst((df[column_of_reference1].==reference1).+(df[column_of_reference2].==reference2).==2),value_to_return]
+#Use getindex to return all rows of the DataFrame fulfilling that in column `col` value `val` is found
+function Base.getindex(df::DataFrame, col_and_val::Tuple{Symbol,Any})
+    return df[findall(df[col_and_val[1]].==col_and_val[2]), :]
+end
+
+#Use getindex to return all rows of the DataFrame fulfilling that in column `col` value `val` is found and the column `colon_ind`
+function Base.getindex(df::DataFrame, col_and_val::Tuple{Symbol,Any}, colon_ind::Symbol)
+    return df[findall(df[col_and_val[1]].==col_and_val[2]), colon_ind]
 end
 
 """
-    find_val_in_df(df::DataFrame,column_of_reference1::Symbol,reference1::String, column_of_reference2::Symbol,reference2::String, value_to_return::String)
-Take DataFrame(df) Look in Column1 and Column2 (column_of_reference1 and 2) for the reference value (reference1 and 2) and return in same row where both values match in column (value_to_return)
+    check_column(df::DataFrame, names_array::Array{Symbol,1})
+check if the columns provided in `names_array` exist in the DataFrame `df`
+throw an error if they don't
 """
-function find_val_in_df(df::DataFrame,
-                        column_of_reference1::Symbol,
-                        reference1::String,
-                        column_of_reference2::Symbol,
-                        reference2::String,
-                        value_to_return::String)
-    return find_val_in_df(df, column_of_reference1, reference1, column_of_reference2, reference2, Symbol(value_to_return))
-end
-
-"""
-     find_cost_in_df(costs::DataFrame,nodes::DataFrame,tech::String,node::String,impact_to_return::String)
-Take DataFrame(df) Look in Column (column_of_reference) for the reference value (reference) and return corresponding value in column (value_to_return)
-"""
-function find_cost_in_df(costs::DataFrame,
-                    nodes::DataFrame,
-                    tech::String,
-                    node::String,
-                    impact_to_return::String
-                    )
-    if find_val_in_df(costs,:tech,tech,:region)=="all"
-      return find_val_in_df(costs,:tech,tech,Symbol(impact_to_return))
-    else
-      return find_val_in_df(costs,:tech,tech,:region,find_val_in_df(nodes,:nodes,node,:region),Symbol(impact_to_return))
+function check_column(df::DataFrame, names_array::Array{Symbol,1})
+    for name in names_array
+        #Check existance of necessary column
+        name in names(df) || throw(@error "No column called `$name` in $(repr(df))")
     end
-end
-
-"""
-     find_line_eff_in_df(lines::DataFrame,techs::DataFrame,line::String,tech::String,eff::Symbol)
-  Take DataFrame(lines and techs) look for the length of this line and the efficiency of this line (eff_in or eff_out) per km and calculate total efficiency
-"""
-function find_line_eff_in_df(lines::DataFrame,
-                            techs::DataFrame,
-                            line::String,
-                            tech::String,
-                            eff::Symbol)
-    return (1-find_val_in_df(lines,:lines,line,:length)*(1-find_val_in_df(techs, :tech, tech, eff)))
 end
 
 """
@@ -382,16 +351,18 @@ function map_set_in_df(df::DataFrame,
                     reference::String,
                     set_to_return::Symbol
                     )
+                    @warn "mat_set_in_df deprecated"
     return df[df[column_of_reference].==reference,set_to_return]
 end
 
 """
-    get_cep_variable_value(variable::OptVariable,index_set::Array)
+    getindex(variable::OptVariable,index_set::Array)
 Get the variable data from the specific Scenario by indicating the `var_name` e.g. "COST" and the `index_set` like `[:;"EUR";"pv"]`
 """
 function get_cep_variable_value(variable::OptVariable,
                                 index_set::Array
                                 )
+                                @warn "get_cep_variable_value deprecated"
     index_num=[]
     for i in  1:length(index_set)
         if index_set[i]==Colon()
@@ -418,6 +389,7 @@ function get_cep_variable_value(scenario::Scenario,
                                 var_name::String,
                                 index_set::Array
                                 )
+                                @warn "get_cep_variable_value deprecated"
     return get_cep_variable_value(scenario.opt_res.variables[var_name], index_set)
 end
 
@@ -428,6 +400,7 @@ Get the variable set from the specific variable and the `num_index_set` like 1
 function get_cep_variable_set(variable::OptVariable,
                               num_index_set::Int
                               )
+                              @warn "get_cep_variable_set deprecated"
     return variable.axes[num_index_set]
 end
 
@@ -439,6 +412,7 @@ function get_cep_variable_set(scenario::Scenario,
                               var_name::String,
                               num_index_set::Int
                               )
+                              @warn "get_cep_variable_set deprecated"
     return  get_cep_variable_set(scenario.opt_res.variables[var_name], num_index_set)
 end
 
@@ -447,16 +421,8 @@ end
 Returns all design variables in this opt_result matching the type "dv"
 Additionally you can add capacity factors, which scale the design variables by multiplying it with the value in the Dict
 """
-function get_cep_design_variables(opt_result::OptResult; capacity_factors::Dict{String,Number}=Dict{String,Number}())
+function get_cep_design_variables(opt_result::OptResult)
   design_variables=get_cep_variables(opt_result, "dv")
-  techs=design_variables["CAP"].axes[findfirst(design_variables["CAP"].axes_names.=="tech")]
-  for (k,v) in capacity_factors
-      if k in techs && findfirst(design_variables["CAP"].axes_names.=="tech")==1
-          design_variables["CAP"].data[findfirst(techs.==k),:,:].*=v
-      else
-          @warn("key $k not found in first row of CAP")
-      end
-  end
   return design_variables
 end
 
@@ -479,7 +445,7 @@ function get_cep_variables(opt_result::OptResult, variable_type::String)
           variables[key]=val
       end
   end
-  if variables==Dict{String,OptVariable}()
+  if isempty(variables)
       throw(@error("$variable_type-Variable not provided in $(opt_result.descriptor)"))
   else
       return variables
@@ -506,7 +472,7 @@ function set_opt_config_cep(opt_data::OptDataCEP
   # Create new Dictionary and set possible unique categories to false to later check wrong setting
   config=Dict{String,Any}("transmission"=>false, "storage_e"=>false, "storage_p"=>false, "generation"=>false)
   # Check the existence of the categ (like generation or storage - see techs.csv) and write it into Dictionary
-  for categ in unique(opt_data.techs[:categ])
+  for categ in unique(getfield.(opt_data.techs[:], :categ))
     config[categ]=true
   end
   # Loop through the kwargs and write them into Dictionary
@@ -546,24 +512,12 @@ end
 Check the consistency of the data
 """
 function check_opt_data_cep(opt_data::OptDataCEP)
-  # Check tech
-  for tech in opt_data.techs[:tech]
-    if !(in(tech,opt_data.cap_costs[:tech]))
-      throw(@error("Technology "*tech*" not included in Cap_cost-Data"))
-    elseif !(in(tech,opt_data.var_costs[:tech]))
-      throw(@error("Technology "*tech*" not included in Var_cost-Data"))
-    elseif !(in(tech,opt_data.fix_costs[:tech]))
-      throw(@error("Technology "*tech*" not included in Fix_cost-Data"))
-    elseif !(in(Symbol(tech),names(opt_data.nodes)))
-      throw(@error("Technology "*tech*" not included in nodes-Data"))
-    end
-  end
   # Check lines
   # Only when Data provided
-  if opt_data.lines!=DataFrame()
+  if !isempty(opt_data.lines)
     # Check existence of start and end node
-    for node in opt_data.lines[:node_end]
-      if !(in(node,opt_data.nodes[:nodes]))
+    for node in getfield.(opt_data.lines[:,:],:node_end)
+      if !(node in axes(nodes, "node"))
         throw(@error("Node "*node*" set as ending node, but not included in nodes-Data"))
       end
     end
@@ -672,7 +626,7 @@ function get_met_cap_limit(cep::OptModelCEP, opt_data::OptDataCEP, variables::Di
   for tech in set["tech"]
     for node in set["nodes"]
       #Check if the limit is reached in any capacity at any node
-      if sum(get_cep_variable_value(variables["CAP"],[tech,:,node])) == find_val_in_df(nodes,:nodes,node,:infrastruct,"lim",tech)
+      if sum(variables["CAP"][tech,:,node]) == nodes[tech,node].power_lim
         #Add this technology and node to the met_cap_limit Array
         push!(met_cap_limit,tech*"-"*node)
       end
@@ -684,15 +638,4 @@ function get_met_cap_limit(cep::OptModelCEP, opt_data::OptDataCEP, variables::Di
     throw( @error "Limit is reached for techs $met_cap_limit")
   end
   return met_cap_limit
-end
-
-"""
-    round_variables!(variables::Dict{String,OptVariable},round_digits::Int64)
-Round the .data of all variables to the digit `round_digits`
-"""
-function round_variables!(variables::Dict{String,OptVariable},
-                          round_digits::Int64)
-  for (k,v) in variables
-    variables[k]=OptVariable(round.(v.data; digits=round_digits),v.axes_names,v.axes,v.type)
-  end
 end

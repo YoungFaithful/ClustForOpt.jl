@@ -1,4 +1,4 @@
-lines,node_start,node_end,reactance,resistance,power,voltage,circuits,length
+line,node_start,node_end,reactance,resistance,power,voltage,circuits,length
 line01,CCT,CVA,0,0,18328,AC_OHL,0,1
 line02,CCT,FRE,0,0,9494,AC_OHL,0,1
 line03,CCT,NCT,0,0,564,AC_OHL,0,1
