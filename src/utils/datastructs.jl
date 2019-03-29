@@ -102,97 +102,6 @@ function SimpleExtremeValueDescr(data_type::String,
    return SimpleExtremeValueDescr(data_type, extremum, peak_def, 1)
 end
 
-"""
-     OptModelCEP
--model::JuMP.Model
--info::Array{String}
--set::Dict{String,Array}
-"""
-struct OptModelCEP
-  model::JuMP.Model
-  info::Array{String}
-  set::Dict{String,Array}
-end
-
-"""
-     OptVariable
--`data::Array` - includes the optimization variable output in  form of an array
--`axes_names::Array{String,1}`` - includes the names of the different axes and is equivalent to the sets in the optimization formulation
--`axes::Tuple` - includes the values of the different axes of the optimization variables
--`type::String` - defines the type of the variable being cv - cost variable - dv -design variable - ov - operating variable - sv - slack variable
-"""
-struct OptVariable
- data::Array
- axes_names::Array{String,1}
- axes::Tuple
- type::String
-end
-
-"""
-    OptVariable(cep::OptModelCEP, variable::Symbol, type::String)
-Constructor for OptVariable taking JuMP Array and type (ov-operational variable or dv-decision variable)
-"""
-function OptVariable(cep::OptModelCEP,
-                     variable::Symbol,
-                     type::String;
-                     round_digits::Int64=9)
-  jumparray=value.(cep.model[variable])
-  axes_names=Array{String,1}()
-  for axe in jumparray.axes
-    for (name, val) in cep.set
-      if axe==val
-        push!(axes_names, name)
-        break
-      end
-    end
-  end
-  OptVariable(round.(jumparray.data;digits=round_digits),axes_names,jumparray.axes,type)
-end
-
-"OptResult"
-struct OptResult
- status::Symbol
- objective::Float64
- total_demand::Float64
- variables::Dict{String,OptVariable}
- model_set::Dict{String,Array}
- model_info::Array{String}
- opt_config::Dict{String,Any}
- #TODO: opt_info::Dict{String,Any}
-end
-
-"""
-     OptDataCEP <: OptData
--`region::String`          name of state or region data belongs to
--`nodes::DataFrame`        nodes x region, infrastruct, capacity_of_different_tech...
--`var_costs::DataFrame`   tech x [USD, CO2]
--`fix_costs::DataFrame`    tech x [USD, CO2]
--`cap_costs::DataFrame`    tech x [USD, CO2]
--`techs::DataFrame`       tech x [categ,sector,lifetime,effic,fuel,annuityfactor]
-instead of USD you can also use your favorite currency like EUR
-"""
-struct OptDataCEP <: OptData
-   region::String
-   nodes::DataFrame
-   var_costs::DataFrame
-   fix_costs::DataFrame
-   cap_costs::DataFrame
-   techs::DataFrame
-   lines::DataFrame
-end
-
-"""
-     Scenario{descriptor::String,clust_res::ClustResult,opt_res::OptResult}
--`descriptor::String`
--`clust_res::ClustResult`
--`opt_res::OptResult`
-"""
-struct Scenario
- descriptor::String
- clust_res::ClustResult
- opt_res::OptResult
-end
-
 
 #### Constructors for data structures###
 
@@ -333,7 +242,7 @@ constructor 3: Convert ClustDataMerged to ClustData
 function ClustData(data::ClustDataMerged)
  data_dict=Dict{String,Array}()
  i=0
- for (k,v) in data.mean
+ for k in data.data_type
    i+=1
    data_dict[k] = data.data[(1+data.T*(i-1)):(data.T*i),:]
  end
