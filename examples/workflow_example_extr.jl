@@ -8,7 +8,7 @@ using Clp
 # load data
 ts_input_data = load_timeseries_data("CEP", "GER_18"; T=24, years=[2015]) #CEP
 
-cep_input_data_GER=load_cep_data("GER_18")
+cep_input_data_GER=load_cep_data_provided"GER_18")
 
  # define simple extreme days of interest
  ev1 = SimpleExtremeValueDescr("wind-dena42","max","absolute")
